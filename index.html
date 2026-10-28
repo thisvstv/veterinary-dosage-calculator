@@ -1,0 +1,3130 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>برنامج حساب الجرعات البيطرية الشامل (mL / kg)</title>
+    <style>
+        :root {
+            --primary: #0f766e;
+            --primary-dark: #115e59;
+            --primary-light: #ccfbf1;
+            --secondary: #0284c7;
+            --bg: #f8fafc;
+            --card: #ffffff;
+            --text: #0f172a;
+            --muted: #475569;
+            --border: #e2e8f0;
+            --accent: #f59e0b;
+            --danger: #dc2626;
+            --success: #16a34a;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding-bottom: 50px;
+        }
+        header {
+            background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+            color: white;
+            padding: 24px 20px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        header h1 {
+            font-size: 1.7rem;
+            margin-bottom: 6px;
+        }
+        header p {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 24px auto;
+            padding: 0 16px;
+        }
+        .grid-layout {
+            display: grid;
+            grid-template-columns: 1fr 1.15fr;
+            gap: 24px;
+        }
+        @media (max-width: 900px) {
+            .grid-layout {
+                grid-template-columns: 1fr;
+            }
+        }
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 22px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin-bottom: 16px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--primary-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .form-group {
+            margin-bottom: 16px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            font-size: 0.92rem;
+            color: var(--text);
+        }
+        select, input[type="number"], input[type="text"] {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.98rem;
+            background: #fff;
+            color: var(--text);
+            transition: border-color 0.2s;
+        }
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .species-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .species-btn {
+            padding: 10px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: #fff;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 0.95rem;
+            text-align: center;
+            transition: all 0.2s;
+        }
+        .species-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+        .cat-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .cat-pill {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid var(--border);
+            background: #f1f5f9;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cat-pill.active {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+        .custom-conc-box {
+            background: #f8fafc;
+            border: 1px dashed var(--secondary);
+            padding: 14px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+        .metric-box {
+            background: #f8fafc;
+            border: 1.5px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            text-align: center;
+        }
+        .metric-box.highlight {
+            background: linear-gradient(135deg, #f0fdfa, #e0f2fe);
+            border-color: var(--primary);
+        }
+        .metric-label {
+            font-size: 0.85rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .metric-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--primary-dark);
+        }
+        .metric-sub {
+            font-size: 0.8rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        .info-list {
+            list-style: none;
+            margin-top: 12px;
+        }
+        .info-list li {
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.93rem;
+        }
+        .info-list li:last-child {
+            border-bottom: none;
+        }
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            background: var(--primary-light);
+            color: var(--primary-dark);
+        }
+        .syringe-wrap {
+            margin: 18px 0;
+            background: #f1f5f9;
+            padding: 14px;
+            border-radius: 10px;
+        }
+        .syringe-bar-bg {
+            height: 26px;
+            background: #e2e8f0;
+            border-radius: 13px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid #cbd5e1;
+        }
+        .syringe-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .table-responsive {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+        th, td {
+            padding: 11px 12px;
+            text-align: right;
+            border-bottom: 1px solid var(--border);
+        }
+        th {
+            background: #f1f5f9;
+            color: var(--primary-dark);
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        .quick-calc-card {
+            background: #fffbeb;
+            border: 1px solid #fde68a;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+        .range-wrap {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .range-wrap input[type="range"] {
+            flex: 1;
+            accent-color: var(--primary);
+        }
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1rem;
+            transition: background 0.2s;
+        }
+        .btn-add:hover {
+            background: var(--primary-dark);
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>🐾 برنامج حساب الجرعات البيطرية الشامل (mL / kg)</h1>
+    <p>يضم كافة الأدوية والمجموعات مع إمكانية إضافة أدوية جديدة مباشرة من الواجهة</p>
+</header>
+
+<div class="container">
+    <div class="grid-layout">
+        <!-- Control Panel -->
+        <div class="card">
+            <div class="card-title">
+                <span>1. بيانات الحيوان واختيار الدواء</span>
+                <span class="badge" id="drugCountBadge">--</span>
+            </div>
+
+            <div class="form-group">
+                <label>نوع الحيوان:</label>
+                <div class="species-toggle">
+                    <button type="button" class="species-btn active" id="btnDog" onclick="setSpecies('dog')">🐶 كلب (Dog)</button>
+                    <button type="button" class="species-btn" id="btnCat" onclick="setSpecies('cat')">🐱 قطة (Cat)</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>وزن الحيوان (كجم): <strong id="weightLabel" style="color:var(--primary)">5 كجم</strong></label>
+                <div class="range-wrap">
+                    <input type="range" id="weightSlider" min="0.5" max="60" step="0.5" value="5" oninput="syncWeight('slider')">
+                    <input type="number" id="weightInput" min="0.1" max="500" step="0.1" value="5" style="width:95px" oninput="syncWeight('input')">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>تصفية حسب المجموعة الدوائية:</label>
+                <div class="cat-pills" id="categoryPills"></div>
+            </div>
+
+            <div class="form-group">
+                <label>بحث سريع (باسم المادة الفعالة أو الاسم التجاري):</label>
+                <input type="text" id="searchInput" placeholder="ابحث بأي اسم دواء..." oninput="filterDrugs()">
+            </div>
+
+            <div class="form-group">
+                <label>اختر الدواء:</label>
+                <select id="drugSelect" onchange="onDrugChange()"></select>
+            </div>
+
+            <div class="form-group" id="doseControlGroup">
+                <label>الجرعة المطلوبة (مجم/كجم): <strong id="selectedDoseMgLabel" style="color:var(--secondary)">--</strong></label>
+                <div class="range-wrap">
+                    <input type="range" id="doseSlider" min="1" max="50" step="0.5" oninput="syncDose('slider')">
+                    <input type="number" id="doseInput" step="0.01" style="width:95px" oninput="syncDose('input')">
+                </div>
+                <small id="doseRangeHint" style="color:var(--muted); display:block; margin-top:4px;"></small>
+            </div>
+
+            <div class="form-group" id="concControlGroup">
+                <label>اختر التركيز المتاح لديك:</label>
+                <select id="concSelect" onchange="onConcChange()"></select>
+
+                <div class="custom-conc-box" id="customConcBox" style="display:none;">
+                    <label style="color:var(--secondary); margin-bottom:8px;">حاسبة التركيز المخصص:</label>
+                    <div class="two-col">
+                        <div>
+                            <label style="font-size:0.8rem;">كمية المادة الفعالة (مجم):</label>
+                            <input type="number" id="customMg" value="1000" min="0.1" step="any" oninput="calcCustomConc()">
+                        </div>
+                        <div>
+                            <label style="font-size:0.8rem;">حجم المذيب / المل (mL):</label>
+                            <input type="number" id="customMl" value="10" min="0.1" step="any" oninput="calcCustomConc()">
+                        </div>
+                    </div>
+                    <div style="margin-top:8px; font-size:0.88rem; font-weight:700; color:var(--primary-dark);">
+                        التركيز الناتج = <span id="customResultMgMl">100</span> مجم / مل
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Output Panel & Add New Drug Card -->
+        <div>
+            <div class="card">
+                <div class="card-title">
+                    <span>2. نتيجة الحساب الفورية</span>
+                    <span class="badge" id="routeBadge">--</span>
+                </div>
+
+                <div class="results-grid">
+                    <div class="metric-box highlight">
+                        <div class="metric-label">الجرعة بمقياس ميلي / كيلو</div>
+                        <div class="metric-value" id="outMlPerKg">--</div>
+                        <div class="metric-sub" id="outMlPerKgSub">لكل 1 كجم</div>
+                    </div>
+                    <div class="metric-box highlight">
+                        <div class="metric-label">إجمالي الجرعة للوزن (<span id="outWeightSpan">5</span> كجم)</div>
+                        <div class="metric-value" id="outTotalMl" style="color:var(--secondary);">--</div>
+                        <div class="metric-sub" id="outTotalSub">في المرة الواحدة</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">معادل سرنجة الأنسولين (100 وحدة)</div>
+                        <div class="metric-value" id="outInsulinUnits" style="font-size:1.35rem;">--</div>
+                        <div class="metric-sub">للأحجام الصغيرة أقل من 1 مل</div>
+                    </div>
+                    <div class="metric-box">
+                        <div class="metric-label">إجمالي المجم في الجرعة</div>
+                        <div class="metric-value" id="outTotalMg" style="font-size:1.35rem;">--</div>
+                        <div class="metric-sub" id="outFreqText">--</div>
+                    </div>
+                </div>
+
+                <div class="syringe-wrap" id="syringeWrap">
+                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:6px;">
+                        <span>مؤشر سحب السرنجة التقريبي:</span>
+                        <span id="syringeCapLabel">سرنجة 3 مل</span>
+                    </div>
+                    <div class="syringe-bar-bg">
+                        <div class="syringe-bar-fill" id="syringeFill"></div>
+                    </div>
+                </div>
+
+                <ul class="info-list">
+                    <li><strong>المادة الفعالة:</strong> <span id="infoActive">--</span></li>
+                    <li><strong>الأسماء التجارية:</strong> <span id="infoTrade">--</span></li>
+                    <li><strong>الجرعة المرجعية:</strong> <span id="infoFileDose">--</span></li>
+                    <li><strong>طريقة الإعطاء والتكرار:</strong> <span id="infoRoute">--</span></li>
+                    <li><strong>دواعي الاستخدام (Usage):</strong> <span id="infoUsage" style="text-align:left; max-width:65%;">--</span></li>
+                </ul>
+
+                <div class="quick-calc-card">
+                    <div style="font-weight:700; color:#92400e; margin-bottom:8px;">⚡ حاسبة حرة لأي تركيز خارج القائمة:</div>
+                    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px;">
+                        <div>
+                            <label style="font-size:0.78rem;">الجرعة (مجم/كجم):</label>
+                            <input type="number" id="freeDose" value="25" step="any" oninput="calcFree()">
+                        </div>
+                        <div>
+                            <label style="font-size:0.78rem;">تركيز الدواء (مجم/مل):</label>
+                            <input type="number" id="freeConc" value="100" step="any" oninput="calcFree()">
+                        </div>
+                        <div>
+                            <label style="font-size:0.78rem;">الناتج (مل/كجم):</label>
+                            <input type="text" id="freeOut" readonly style="font-weight:700; background:#fef3c7; color:#92400e;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Custom Drug Widget -->
+            <div class="card" style="background: #f0fdf4; border-color: #bbf7d0;">
+                <div class="card-title" style="color: #166534; border-bottom-color: #bbf7d0;">
+                    <span>➕ إضافة دواء جديد مباشرة للبرنامج</span>
+                </div>
+                <div class="two-col" style="margin-bottom: 12px;">
+                    <div>
+                        <label>اسم الدواء (المادة الفعالة):</label>
+                        <input type="text" id="newActive" placeholder="مثال: Ketoprofen">
+                    </div>
+                    <div>
+                        <label>الاسم التجاري:</label>
+                        <input type="text" id="newTrade" placeholder="مثال: Ketofen">
+                    </div>
+                </div>
+                <div class="two-col" style="margin-bottom: 12px;">
+                    <div>
+                        <label>المجموعة الدوائية:</label>
+                        <input type="text" id="newCategory" value="مضادات الالتهاب والمسكنات" placeholder="المجموعة">
+                    </div>
+                    <div>
+                        <label>الجرعة (مجم / كجم):</label>
+                        <input type="number" id="newDose" value="2" step="0.1">
+                    </div>
+                </div>
+                <div class="two-col" style="margin-bottom: 12px;">
+                    <div>
+                        <label>تركيز الدواء (مجم / مل):</label>
+                        <input type="number" id="newConc" value="10" step="0.1" placeholder="مثال: 10 مجم/مل">
+                    </div>
+                    <div>
+                        <label>طريقة الإعطاء والتكرار:</label>
+                        <input type="text" id="newRouteFreq" value="IM / IV (كل 24 ساعة)" placeholder="طريقة الإعطاء">
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>دواعي الاستخدام (Usage):</label>
+                    <input type="text" id="newUsage" value="Analgesic and anti-inflammatory" placeholder="الاستخدام الطبي">
+                </div>
+                <button type="button" class="btn-add" onclick="addNewCustomDrug()">حفظ وإضافة الدواء للقائمة فوراً</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Master Reference Table -->
+    <div class="card">
+        <div class="card-title">
+            <span>3. الجدول المرجعي الكامل للأدوية (محسوب لوزن <span id="tableWeightSpan">5</span> كجم)</span>
+        </div>
+        <div class="table-responsive">
+            <table>
+                <thead>
+                    <tr>
+                        <th>المجموعة</th>
+                        <th>المادة الفعالة</th>
+                        <th>الاسم التجاري</th>
+                        <th>جرعة الملف</th>
+                        <th>التركيز القياسي</th>
+                        <th>الجرعة (مل/كجم)</th>
+                        <th>الجرعة للوزن الحالي</th>
+                        <th>الطريقة والتكرار</th>
+                    </tr>
+                </thead>
+                <tbody id="masterTableBody"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+const drugsData = [
+    // --- أدوية الملف الجديد المضافة (مضادات الالتهاب NSAIDs الجديدة من BSAVA) ---
+    {
+        id: "alendronate",
+        category: "مضادات الالتهاب غير الستيرويدية والمثبطة (NSAIDs & Related)",
+        active: "Alendronate sodium",
+        trade: "Fosamax*",
+        fileDoseText: "Dogs: 0.5-1 mg/kg q24h | Cats: 5-10 mg/cat weekly",
+        route: "p.o. (Per oral)",
+        freq: "يومياً للكلاب / أسبوعياً للقطط",
+        usage: "To reduce pain associated with osteolytic conditions (bone tumours) and hypercalcaemia",
+        calcType: "mg_kg",
+        minDose: 0.5,
+        maxDose: 1,
+        defaultDose: 0.5,
+        concentrations: [
+            { name: "قرص 70 مجم مذاب في 70 مل ماء (1 مجم/مل)", mgPerMl: 1 },
+            { name: "قرص 10 مجم مذاب في 10 مل ماء (1 مجم/مل)", mgPerMl: 1 }
+        ]
+    },
+    {
+        id: "aspirin_bsava",
+        category: "مضادات الالتهاب غير الستيرويدية والمثبطة (NSAIDs & Related)",
+        active: "Acetylsalicylic acid (Aspirin)",
+        trade: "Aspirin BP*",
+        fileDoseText: "Dogs: 0.5-1 mg/kg (platelets) or 10-20 mg/kg (pain) | Cats: 18.75-75 mg/cat",
+        route: "p.o. (Per oral)",
+        freq: "كل 12 - 24 ساعة",
+        usage: "Prevention of arterial thromboembolism, control of mild to moderate pain, and management of IMHA",
+        calcType: "mg_kg",
+        minDose: 0.5,
+        maxDose: 20,
+        defaultDose: 10,
+        concentrations: [
+            { name: "قرص 81 مجم مذاب في 8.1 مل ماء (10 مجم/مل)", mgPerMl: 10 },
+            { name: "قرص 100 مجم مذاب في 10 مل ماء (10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "carprofen_bsava",
+        category: "مضادات الالتهاب غير الستيرويدية والمثبطة (NSAIDs & Related)",
+        active: "Carprofen",
+        trade: "Canidryl, Carprieve, Rimadyl, Rycarfac",
+        fileDoseText: "Dogs: 4 mg/kg i.v./s.c./p.o. | Cats: 4 mg/kg i.v./s.c. preoperatively",
+        route: "i.v., s.c., p.o.",
+        freq: "مرة يومياً",
+        usage: "Control of postoperative pain, inflammation following surgery, and reduction of osteoarthritis",
+        calcType: "mg_kg",
+        minDose: 2,
+        maxDose: 4,
+        defaultDose: 4,
+        concentrations: [
+            { name: "حقن بيطري (50 مجم/مل)", mgPerMl: 50 }
+        ]
+    },
+    {
+        id: "cimicoxib",
+        category: "مضادات الالتهاب غير الستيرويدية والمثبطة (NSAIDs & Related)",
+        active: "Cimicoxib",
+        trade: "Cimalgex",
+        fileDoseText: "Dogs ONLY: 2 mg/kg p.o. q24h",
+        route: "p.o. (Per oral)",
+        freq: "كل 24 ساعة",
+        usage: "Treatment of pain and inflammation associated with osteoarthritis and perioperative pain in dogs",
+        calcType: "mg_kg",
+        minDose: 2,
+        maxDose: 2,
+        defaultDose: 2,
+        concentrations: [
+            { name: "أقراص مذابة (تركيز افتراضي 20 مجم/مل)", mgPerMl: 20 }
+        ]
+    },
+    {
+        id: "diclofenac",
+        category: "مضادات الالتهاب غير الستيرويدية والمثبطة (NSAIDs & Related)",
+        active: "Diclofenac sodium",
+        trade: "Voltarol Ophtha*",
+        fileDoseText: "1 drop q30min for 2 hours prior to cataract surgery",
+        route: "Ophthalmic (Topical eye drops)",
+        freq: "قبل العمليات الجراحية للعين",
+        usage: "Prevention of intraoperative miosis in cataract surgery, control of pain and inflammation",
+        calcType: "fixed_text",
+        fixedNote: "قطرة عينية موضعية (قطرة واحدة كل 30 دقيقة لمدة ساعتين قبل جراحة المياه البيضاء)."
+    },
+
+    // --- أدوية الملف الثاني (مضادات الأوليات، مسكنات، مهدئات، تنفسي) ---
+    {
+        id: "allopurinol",
+        category: "1. مضادات الأوليات (Antiprotozoal)",
+        active: "Allopurinol",
+        trade: "Zyloric*",
+        fileDoseText: "Dogs: 10 mg/kg q12h | Cats: 10-20 mg/kg q12-24h",
+        route: "p.o. (per oral)",
+        freq: "كل 12 - 24 ساعة",
+        usage: "Treatment of leishmaniosis; also used for recurrent uric acid uroliths",
+        calcType: "mg_kg",
+        minDose: 10,
+        maxDose: 20,
+        defaultDose: 10,
+        concentrations: [
+            { name: "قرص 100 مجم مذاب في 10 مل ماء (10 مجم/مل)", mgPerMl: 10 },
+            { name: "قرص 300 مجم مذاب في 10 مل ماء (30 مجم/مل)", mgPerMl: 30 }
+        ]
+    },
+    {
+        id: "amprolium",
+        category: "1. مضادات الأوليات (Antiprotozoal)",
+        active: "Amprolium",
+        trade: "Harkers Pigeon Coccidiosis Treatment",
+        fileDoseText: "Dogs: 200-300 mg/dog | Cats: 50-100 mg/cat",
+        route: "p.o. (per oral)",
+        freq: "كل 24 ساعة",
+        usage: "Treatment of coccidiosis in dogs and cats",
+        calcType: "fixed_text",
+        fixedNote: "جرعة تقريبية للكلب 200-300 مجم/كلب يومياً، وللقطة 50-100 مجم/قطة."
+    },
+    {
+        id: "azithromycin",
+        category: "1. مضادات الأوليات (Antiprotozoal)",
+        active: "Azithromycin",
+        trade: "Azyter*, Zedbac*, Zithromax*",
+        fileDoseText: "5 - 10 mg/kg p.o. q24h",
+        route: "p.o., i.v.",
+        freq: "كل 24 ساعة",
+        usage: "Treatment of small Babesia spp. (B. gibsoni) and Cytauxzoon felis; respiratory/soft-tissue infections",
+        calcType: "mg_kg",
+        minDose: 5,
+        maxDose: 10,
+        defaultDose: 10,
+        concentrations: [
+            { name: "شراب Azithromycin (200 مجم / 5 مل = 40 مجم/مل)", mgPerMl: 40 },
+            { name: "شراب (100 مجم / 5 مل = 20 مجم/مل)", mgPerMl: 20 }
+        ]
+    },
+    {
+        id: "clindamycin_protozoa",
+        category: "1. مضادات الأوليات (Antiprotozoal)",
+        active: "Clindamycin",
+        trade: "Antirobe, Clinacin, Zodon, Dalacin-C, Clindamed",
+        fileDoseText: "25 - 50 mg/kg daily in divided doses (or 5.5-15 mg/kg q12h)",
+        route: "p.o. (per oral)",
+        freq: "يومياً على جرعات مقسمة (كل 12 ساعة)",
+        usage: "Treatment of protozoal infections (Toxoplasma gondii, Neospora caninum); bone/joint/oral infections",
+        calcType: "mg_kg",
+        minDose: 5.5,
+        maxDose: 50,
+        defaultDose: 15,
+        concentrations: [
+            { name: "شراب معلق (15 مجم/مل)", mgPerMl: 15 },
+            { name: "شراب مركز (25 مجم/مل)", mgPerMl: 25 },
+            { name: "كبسولة 150 مجم مذابة في 10 مل ماء (15 مجم/مل)", mgPerMl: 15 }
+        ]
+    },
+    {
+        id: "alfentanil",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Alfentanil",
+        trade: "Rapifen*",
+        fileDoseText: "Dogs: 0.001-0.005 mg/kg i.v. | Cats: 0.001 mg/kg i.v.",
+        route: "i.v. / CRI",
+        freq: "حقن وريدي مفرد أو مستمر (CRI)",
+        usage: "Very potent opioid analgesic for intraoperative analgesia during anaesthesia",
+        calcType: "mg_kg",
+        minDose: 0.001,
+        maxDose: 0.005,
+        defaultDose: 0.001,
+        concentrations: [
+            { name: "أمبول Rapifen (0.5 مجم / مل)", mgPerMl: 0.5 }
+        ]
+    },
+    {
+        id: "amantadine",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Amantadine",
+        trade: "Lysovir*, Symmetrel*",
+        fileDoseText: "3.0 - 5.0 mg/kg p.o. q24h",
+        route: "p.o. (per oral)",
+        freq: "كل 24 ساعة",
+        usage: "Adjunctive analgesic for animals unresponsive to NSAIDs or chronic pain (osteoarthritis/cancer)",
+        calcType: "mg_kg",
+        minDose: 3.0,
+        maxDose: 5.0,
+        defaultDose: 3.0,
+        concentrations: [
+            { name: "كبسولة 100 مجم مذابة في 20 مل ماء (5 مجم/مل)", mgPerMl: 5 }
+        ]
+    },
+    {
+        id: "bedinvetmab",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Bedinvetmab",
+        trade: "Librela",
+        fileDoseText: "Dogs: 0.5 - 1.0 mg/kg s.c. once monthly",
+        route: "s.c. (subcutaneous)",
+        freq: "شهرياً (Once monthly)",
+        usage: "Alleviation of pain associated with osteoarthritis in dogs",
+        calcType: "fixed_text",
+        fixedNote: "حقن تحت الجلد للكلاب شهرياً (0.5 - 1 مجم/كجم). للكلاب أقل من 5 كجم يُسحب 0.1 مل/كجم من فيال 5 مجم."
+    },
+    {
+        id: "bupivacaine",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Bupivacaine",
+        trade: "Marcain*, Sensorcaine*",
+        fileDoseText: "Perineural: 0.1-0.3 ml/kg | Epidural: 1.6-2.3 mg/kg",
+        route: "Perineural, epidural, interpleural",
+        freq: "حسب التخدير الموضعي",
+        usage: "Analgesia via perineural nerve blocks, regional and epidural techniques",
+        calcType: "mg_kg",
+        minDose: 1.6,
+        maxDose: 2.3,
+        defaultDose: 1.6,
+        concentrations: [
+            { name: "محلول مخدر موضعي 0.5% (5 مجم/مل)", mgPerMl: 5 }
+        ]
+    },
+    {
+        id: "buprenorphine",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Buprenorphine",
+        trade: "Bupaq, Buprecare, Vetergesic",
+        fileDoseText: "0.02 - 0.03 mg/kg i.v., i.m., s.c. q6h",
+        route: "i.v., i.m., s.c., oral transmucosal",
+        freq: "كل 6 ساعات (q6h)",
+        usage: "Relief of mild to moderate perioperative pain",
+        calcType: "mg_kg",
+        minDose: 0.02,
+        maxDose: 0.03,
+        defaultDose: 0.02,
+        concentrations: [
+            { name: "حقن بيطري/بشري (0.3 مجم/مل)", mgPerMl: 0.3 }
+        ]
+    },
+    {
+        id: "butorphanol",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Butorphanol",
+        trade: "Alvegesic, Dolorex, Torbugesic",
+        fileDoseText: "0.2 - 0.5 mg/kg i.v., i.m., s.c.",
+        route: "i.v., i.m., s.c.",
+        freq: "حسب الحاجة الجراحية",
+        usage: "Management of mild perioperative pain and sedation in combinations",
+        calcType: "mg_kg",
+        minDose: 0.2,
+        maxDose: 0.5,
+        defaultDose: 0.2,
+        concentrations: [
+            { name: "حقن بيطري (10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "codeine",
+        category: "2. مسكنات الألم والمخدرات (Analgesics)",
+        active: "Codeine",
+        trade: "Pardale-V, Codeine*",
+        fileDoseText: "Dogs: 1-2 mg/kg p.o. q6-12h | Cats: 0.5-2 mg/kg p.o. q6-8h",
+        route: "p.o. (per oral)",
+        freq: "كل 6 - 12 ساعة",
+        usage: "Analgesia, cough suppression, and treatment of diarrhoea",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 2,
+        defaultDose: 1,
+        concentrations: [
+            { name: "شراب كودايين افتراضي (10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "acepromazine",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Acepromazine (ACP)",
+        trade: "Acecare, ACP",
+        fileDoseText: "0.01 - 0.05 mg/kg i.m./s.c. (Boxers: 0.005-0.01)",
+        route: "i.v., i.m., s.c., p.o.",
+        freq: "قبل التخدير",
+        usage: "Sedation or pre-anaesthetic medication; raises threshold for cardiac arrhythmias; antiemetic",
+        calcType: "mg_kg",
+        minDose: 0.01,
+        maxDose: 0.05,
+        defaultDose: 0.02,
+        concentrations: [
+            { name: "حقن بيطري بيوربرومازين (2 مجم/مل)", mgPerMl: 2 },
+            { name: "حقن بيطري (10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "alfaxalone",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Alfaxalone",
+        trade: "Alfaxan",
+        fileDoseText: "Dogs: 2-3 mg/kg i.v. | Cats: 2-5 mg/kg i.v.",
+        route: "i.v., i.m., s.c.",
+        freq: "عند التخدير (Induction)",
+        usage: "Induction agent before inhalational anaesthesia, or as a sole anaesthetic/sedative agent",
+        calcType: "mg_kg",
+        minDose: 2,
+        maxDose: 5,
+        defaultDose: 2,
+        concentrations: [
+            { name: "محلول حقن Alfaxan (10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "atipamezole",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Atipamezole",
+        trade: "Alzane, Antisedan, Atipam",
+        fileDoseText: "Dogs: 5x medetomidine dose i.m.",
+        route: "i.m. (or slow i.v.)",
+        freq: "جرعة عكسية واحدة",
+        usage: "Reverses sedative and other effects of medetomidine or dexmedetomidine",
+        calcType: "fixed_text",
+        fixedNote: "يُعطى في العضل لعكس تأثير مهدئات ألفا-2 (5 أضعاف جرعة الميديتوميدين أو 10 أضعاف الديكسميديتوميدين)."
+    },
+    {
+        id: "atropine",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Atropine",
+        trade: "Atrocare, Atropine",
+        fileDoseText: "0.01 - 0.03 mg/kg i.v. / i.m.",
+        route: "i.v., i.m., s.c., ophthalmic",
+        freq: "حسب الطوارئ وتصحيح البطء القلبي",
+        usage: "Prevention/correction of bradycardia or bradyarrhythmias and treatment of organophosphate toxicity",
+        calcType: "mg_kg",
+        minDose: 0.01,
+        maxDose: 0.04,
+        defaultDose: 0.02,
+        concentrations: [
+            { name: "أمبول أتروبين بشري/بيطري (1 مجم/مل)", mgPerMl: 1 },
+            { name: "حقن أتروبين (0.5 مجم/مل)", mgPerMl: 0.5 }
+        ]
+    },
+    {
+        id: "dexmedetomidine",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Dexmedetomidine",
+        trade: "Dexdomitor, Sedadex, Sileo",
+        fileDoseText: "2 - 10 micrograms/kg i.v., i.m., s.c.",
+        route: "i.v., i.m., s.c., oromucosal",
+        freq: "قبل العمليات أو للتهدئة الحادة",
+        usage: "Sedation, premedication, and alleviation of acute noise anxiety",
+        calcType: "fixed_text",
+        fixedNote: "الجرعة بالميكروجرام/كجم (2-10 ميكروجرام/كجم) للتهدئة والتحضير للتخدير."
+    },
+    {
+        id: "diazepam",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Diazepam",
+        trade: "Ziapam, Diazemuls, Stesolid",
+        fileDoseText: "Dogs (sedation): 0.2-0.5 mg/kg | Seizures: 0.5-1 mg/kg",
+        route: "i.v., i.m., rectal, p.o.",
+        freq: "حسب حالات التشنج أو التحضير",
+        usage: "Emergency seizure control, pre-anaesthetic medication, and muscle relaxation",
+        calcType: "mg_kg",
+        minDose: 0.2,
+        maxDose: 1.0,
+        defaultDose: 0.5,
+        concentrations: [
+            { name: "أمبول فاليم / ديازيپام (10 مجم / 2 مل = 5 مجم/مل)", mgPerMl: 5 }
+        ]
+    },
+    {
+        id: "acetylcysteine",
+        category: "4. أدوية الجهاز التنفسي (Respiratory)",
+        active: "Acetylcysteine",
+        trade: "Stromease, Parvolex",
+        fileDoseText: "Nebulize 50 mg as 2% solution over 30-60 min",
+        route: "Nebulization / intratracheal",
+        freq: "جلسات استنشاق يومية",
+        usage: "Mucolytic for respiratory disease; also used for paracetamol/toxin poisoning",
+        calcType: "fixed_text",
+        fixedNote: "مذيب للبلغم يُستخدم بجلسات النيبوليزر (محلول 2% لمدة 30-60 دقيقة) أو بالتنقيط المباشر داخل القصبة الهوائية."
+    },
+    {
+        id: "adrenaline",
+        category: "4. أدوية الجهاز التنفسي (Respiratory)",
+        active: "Adrenaline (Epinephrine)",
+        trade: "Adrenaline*, Epinephrine*, Adrenamax",
+        fileDoseText: "10 micrograms/kg of 1:1000 solution",
+        route: "i.v., i.m., s.c., intratracheal",
+        freq: "في حالات الطوارئ القصوى والإنعاش",
+        usage: "Status asthmaticus, bronchoconstriction, anaphylaxis, and cardiac resuscitation",
+        calcType: "fixed_text",
+        fixedNote: "تُستخدم في الطوارئ والإنعاش القلبي (10 ميكروجرام/كجم من محلول 1:1000) لعلاج الصدمة التحسسية وانقباض الشعب الهوائية الحاد."
+    },
+    {
+        id: "aminophylline",
+        category: "4. أدوية الجهاز التنفسي (Respiratory)",
+        active: "Aminophylline",
+        trade: "Aminophylline*",
+        fileDoseText: "Dogs: 10 mg/kg p.o. q8h | Cats: 5 mg/kg p.o. q12h",
+        route: "p.o., i.v. (slowly, diluted)",
+        freq: "كل 8 - 12 ساعة",
+        usage: "Lower-airway disease: bronchodilation and stimulation of the respiratory centre",
+        calcType: "mg_kg",
+        minDose: 5,
+        maxDose: 10,
+        defaultDose: 10,
+        concentrations: [
+            { name: "أمبول امينوفيللين (25 مجم/مل)", mgPerMl: 25 }
+        ]
+    },
+    {
+        id: "bromhexine",
+        category: "4. أدوية الجهاز التنفسي (Respiratory)",
+        active: "Bromhexine",
+        trade: "Bisolvon",
+        fileDoseText: "Dogs: 2 mg/kg p.o. q12h | Cats: 1 mg/kg p.o. q24h",
+        route: "p.o. (per oral)",
+        freq: "كل 12 - 24 ساعة",
+        usage: "Bronchial secretolytic/mucolytic to aid management of respiratory disease",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 2,
+        defaultDose: 2,
+        concentrations: [
+            { name: "شراب بيسولفون / برومهكسين (2 مجم/مل)", mgPerMl: 2 }
+        ]
+    },
+    {
+        id: "budesonide",
+        category: "4. أدوية الجهاز التنفسي (Respiratory)",
+        active: "Budesonide",
+        trade: "Pulmicort, Budelin",
+        fileDoseText: "Cats (inhaled): 400 micrograms q12h",
+        route: "Inhaled",
+        freq: "كل 12 ساعة",
+        usage: "Inhaled formulations used for asthma, allergic rhinitis, or bronchial disease",
+        calcType: "fixed_text",
+        fixedNote: "بخاخ استنشاق (400 ميكروجرام) للقطط مرتين يومياً لعلاج أمراض القصبات الهوائية والربو."
+    },
+
+    // --- أدوية الملف الأول (المضادات الحيوية، الفطريات، الطفيليات، الهضمي، الدعم) ---
+    {
+        id: "cipro",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Ciprofloxacin",
+        trade: "Ciprofloxacin, Ciprobay, Cipro",
+        fileDoseText: "5 - 50 mg/kg (Oral: 5-15 mg/kg q12h | Systemic: 25-50 mg/kg)",
+        route: "Oral / IV",
+        freq: "مرتين يومياً (q12h) لمدة 3-5 أيام",
+        usage: "Susceptible bacterial infections, particularly Gram-negative intestinal, respiratory, and UTIs",
+        calcType: "mg_kg",
+        minDose: 5,
+        maxDose: 50,
+        defaultDose: 15,
+        concentrations: [
+            { name: "محلول وريدي IV (200 مجم / 100 مل = 2 مجم/مل)", mgPerMl: 2 },
+            { name: "شراب معلق (250 مجم / 5 مل = 50 مجم/مل)", mgPerMl: 50 },
+            { name: "محلول بيطري 10% (100 مجم/مل)", mgPerMl: 100 },
+            { name: "قرص 250 مجم مذاب في 5 مل ماء (50 مجم/مل)", mgPerMl: 50 },
+            { name: "قرص 500 مجم مذاب في 5 مل ماء (100 مجم/مل)", mgPerMl: 100 }
+        ]
+    },
+    {
+        id: "amox_clav_oral",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Amoxicillin & Clavulanic acid (Oral)",
+        trade: "Synulox / Augmentin susp / Amox-claizer / Curam",
+        fileDoseText: "Oral: 12.5 - 25 mg/kg q8-12",
+        route: "Oral (فموي)",
+        freq: "كل 8 - 12 ساعة (q8-12)",
+        usage: "Skin & soft-tissue infections, bite wounds, oral/dental infections, respiratory infections, UTIs",
+        calcType: "mg_kg",
+        minDose: 12.5,
+        maxDose: 25,
+        defaultDose: 12.5,
+        concentrations: [
+            { name: "نقط شراب Synulox Drops (50 مجم/مل)", mgPerMl: 50 },
+            { name: "شراب Augmentin 156 مجم/5 مل (31.2 مجم/مل)", mgPerMl: 31.2 },
+            { name: "شراب Augmentin 312.5 مجم/5 مل (62.5 مجم/مل)", mgPerMl: 62.5 },
+            { name: "شراب Augmentin 457 مجم/5 مل (91.4 مجم/مل)", mgPerMl: 91.4 },
+            { name: "شراب Augmentin ES 600 مجم/5 مل (120 مجم/مل)", mgPerMl: 120 }
+        ]
+    },
+    {
+        id: "amox_clav_inj",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Amoxicillin & Clavulanic acid (Injection)",
+        trade: "Synulox RTU Inj",
+        fileDoseText: "Inj: 8.75 mg/kg q24",
+        route: "Inj (SC / IM)",
+        freq: "كل 24 ساعة (q24)",
+        usage: "Skin & soft-tissue infections, bite wounds, oral/dental infections, respiratory infections, UTIs",
+        calcType: "mg_kg",
+        minDose: 8.75,
+        maxDose: 8.75,
+        defaultDose: 8.75,
+        concentrations: [
+            { name: "حقن Synulox RTU المعلق (175 مجم/مل)", mgPerMl: 175 }
+        ]
+    },
+    {
+        id: "ceftriaxone",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Ceftriaxone",
+        trade: "Cefaxone / Cefotriaxone / Xoraxon / Mesporin",
+        fileDoseText: "20 - 50 mg/kg",
+        route: "IM / IV / SC",
+        freq: "كل 12 - 24 ساعة لمدة 3-5 أيام",
+        usage: "Severe/systemic bacterial infections caused by susceptible organisms, especially Gram-negative infections",
+        calcType: "mg_kg",
+        minDose: 20,
+        maxDose: 50,
+        defaultDose: 25,
+        concentrations: [
+            { name: "فيال 1000 مجم محلول في 10 مل (100 مجم/مل)", mgPerMl: 100 },
+            { name: "فيال 500 مجم محلول في 5 مل (100 مجم/مل)", mgPerMl: 100 },
+            { name: "فيال 1000 مجم محلول في 4 مل للعضل (250 مجم/مل)", mgPerMl: 250 },
+            { name: "فيال 1000 مجم محلول في 3.5 مل ليدوكايين (حوالي 250 مجم/مل)", mgPerMl: 250 },
+            { name: "فيال 500 مجم محلول في 2 مل للعضل (250 مجم/مل)", mgPerMl: 250 }
+        ]
+    },
+    {
+        id: "doxycycline",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Doxycycline",
+        trade: "Vibramycin, Doxy Must, Doxyn",
+        fileDoseText: "5 - 10 mg/kg q12-24h",
+        route: "Oral",
+        freq: "كل 12 - 24 ساعة (لمدة 7-14 يوم)",
+        usage: "Ehrlichiosis, Anaplasmosis, Chlamydia/Mycoplasma infections, respiratory infections, Leptospira",
+        calcType: "mg_kg",
+        minDose: 5,
+        maxDose: 10,
+        defaultDose: 10,
+        concentrations: [
+            { name: "شراب Vibramycin (50 مجم/5 مل = 10 مجم/مل)", mgPerMl: 10 },
+            { name: "كبسولة 100 مجم مذابة في 10 مل ماء (10 مجم/مل)", mgPerMl: 10 },
+            { name: "كبسولة 100 مجم مذابة في 5 مل ماء (20 مجم/مل)", mgPerMl: 20 }
+        ]
+    },
+    {
+        id: "marbofloxacin",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Marbofloxacin",
+        trade: "Marbogerm, Marbodac 150, Marbofloxswede",
+        fileDoseText: "2 - 5.5 mg/kg q24h",
+        route: "IV / S/C / P.O",
+        freq: "كل 24 ساعة (q24)",
+        usage: "UTIs, skin/soft-tissue infections, respiratory infections, susceptible Gram-negative infections",
+        calcType: "mg_kg",
+        minDose: 2,
+        maxDose: 5.5,
+        defaultDose: 2.75,
+        concentrations: [
+            { name: "حقن Marbogerm 2% (20 مجم/مل)", mgPerMl: 20 },
+            { name: "حقن Marbogerm 10% (100 مجم/مل)", mgPerMl: 100 }
+        ]
+    },
+    {
+        id: "cefotaxime",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Cefotaxime",
+        trade: "Cefotax, Cefaxim",
+        fileDoseText: "25 - 50 mg/kg",
+        route: "IM / IV / S/C",
+        freq: "كل 8 - 24 ساعة لمدة 3-5 أيام",
+        usage: "Severe/systemic bacterial infections, especially Gram-negative infections (3rd-gen cephalosporin)",
+        calcType: "mg_kg",
+        minDose: 25,
+        maxDose: 50,
+        defaultDose: 25,
+        concentrations: [
+            { name: "فيال 1000 مجم محلول في 10 مل (100 مجم/مل)", mgPerMl: 100 },
+            { name: "فيال 500 مجم محلول في 5 مل (100 مجم/مل)", mgPerMl: 100 },
+            { name: "فيال 1000 مجم محلول في 4 مل (250 مجم/مل)", mgPerMl: 250 },
+            { name: "فيال 500 مجم محلول في 2 مل (250 مجم/مل)", mgPerMl: 250 }
+        ]
+    },
+
+    // --- المضادات الحيوية الإضافية من الدليل السريري ---
+    {
+        id: "ampicillin_sulbactam",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Ampicillin & Sulbactam",
+        trade: "Unictam, Ampictam",
+        fileDoseText: "Dogs & Cats: 10 - 20 mg/kg once daily (3-5 days)",
+        route: "I/V, I/M",
+        freq: "مرة يومياً لمدة 3-5 أيام",
+        usage: "مضاد حيوي واسع المجال لعلاج العدوى البكتيرية الشديدة",
+        calcType: "mg_kg",
+        minDose: 10,
+        maxDose: 20,
+        defaultDose: 15,
+        concentrations: [
+            { name: "فيال 1500 مجم محلول في 6 مل (250 مجم/مل)", mgPerMl: 250 },
+            { name: "فيال 750 مجم محلول في 3 مل (250 مجم/مل)", mgPerMl: 250 },
+            { name: "فيال 1500 مجم محلول في 15 مل (100 مجم/مل)", mgPerMl: 100 }
+        ]
+    },
+    {
+        id: "cefalexin_compendium",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Cefalexin",
+        trade: "Ceporex",
+        fileDoseText: "Dogs & Cats: 30 - 50 mg/kg P.O q12h (3-5 days)",
+        route: "P.O",
+        freq: "كل 12 ساعة لمدة 3-5 أيام",
+        usage: "سيفالوسبورين الجيل الأول لالتهابات الجلد والأنسجة الرخوة والمسالك البولية",
+        calcType: "mg_kg",
+        minDose: 30,
+        maxDose: 50,
+        defaultDose: 30,
+        concentrations: [
+            { name: "شراب Ceporex (250 مجم / 5 مل = 50 مجم/مل)", mgPerMl: 50 },
+            { name: "شراب Ceporex (125 مجم / 5 مل = 25 مجم/مل)", mgPerMl: 25 }
+        ]
+    },
+    {
+        id: "cefoperazone",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Cefoperazone",
+        trade: "Cefobid, Cefozon",
+        fileDoseText: "Dogs & Cats: 22 - 50 mg/kg once daily (3-5 days)",
+        route: "I/M, I/V",
+        freq: "مرة يومياً لمدة 3-5 أيام",
+        usage: "سيفالوسبورين الجيل الثالث لعلاج العدوى البكتيرية الحادة",
+        calcType: "mg_kg",
+        minDose: 22,
+        maxDose: 50,
+        defaultDose: 25,
+        concentrations: [
+            { name: "فيال 1000 مجم محلول في 10 مل (100 مجم/مل)", mgPerMl: 100 },
+            { name: "فيال 1000 مجم محلول في 4 مل للعضل (250 مجم/مل)", mgPerMl: 250 }
+        ]
+    },
+    {
+        id: "enrofloxacin",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Enrofloxacin",
+        trade: "Vil-floks",
+        fileDoseText: "Dogs: 5-20 mg/kg I/M | Cats: 5 mg/kg I/M (3-5 days)",
+        route: "I/M",
+        freq: "يومياً لمدة 3-5 أيام",
+        usage: "مضاد حيوي بيطري واسع المجال لعلاج العدوى المعقدة",
+        calcType: "mg_kg",
+        minDose: 5,
+        maxDose: 20,
+        defaultDose: 5,
+        concentrations: [
+            { name: "حقن بيطري 5% (50 مجم/مل)", mgPerMl: 50 },
+            { name: "حقن بيطري 10% (100 مجم/مل)", mgPerMl: 100 }
+        ]
+    },
+    {
+        id: "tylosin",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Tylosin",
+        trade: "Tylosin Avico",
+        fileDoseText: "Dogs & Cats: 10 mg/kg once daily (1 ml / 20 kg = 0.05 ml/kg)",
+        route: "I/M",
+        freq: "مرة يومياً لمدة 3-5 أيام",
+        usage: "ماكروليد لالتهابات التنفس والإسهال المزمن المستجيب للتيلوزين",
+        calcType: "mg_kg",
+        minDose: 10,
+        maxDose: 10,
+        defaultDose: 10,
+        concentrations: [
+            { name: "حقن Tylosin 20% القياسي (200 مجم/مل)", mgPerMl: 200 },
+            { name: "حقن Tylosin 5% (50 مجم/مل)", mgPerMl: 50 }
+        ]
+    },
+    {
+        id: "gentamicin",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Gentamicin sulfate",
+        trade: "EGmicin -Vet, Gentamycin inj",
+        fileDoseText: "Dogs & Cats: 6 - 8 mg/kg once daily (3-5 days)",
+        route: "I/M",
+        freq: "مرة يومياً لمدة 3-5 أيام",
+        usage: "أمينوجليكوزيد للبكتيريا سالبة الجرام والعدوى الشديدة",
+        calcType: "mg_kg",
+        minDose: 6,
+        maxDose: 8,
+        defaultDose: 6,
+        concentrations: [
+            { name: "حقن بيطري 10% (100 مجم/مل)", mgPerMl: 100 },
+            { name: "حقن بيطري 5% (50 مجم/مل)", mgPerMl: 50 },
+            { name: "أمبول بشري 80 مجم / 2 مل (40 مجم/مل)", mgPerMl: 40 }
+        ]
+    },
+    {
+        id: "amikacin",
+        category: "المضادات الحيوية (Antibiotics)",
+        active: "Amikacin",
+        trade: "Amikacin lotion spray / Inj",
+        fileDoseText: "Dogs & Cats: 15 mg/kg q24h (أو بخاخ موضعي)",
+        route: "I/V, I/M, Topical",
+        freq: "كل 24 ساعة",
+        usage: "علاج العدوى الشديدة الناتجة عن بكتيريا سالبة الجرام المقاومة",
+        calcType: "mg_kg",
+        minDose: 10,
+        maxDose: 30,
+        defaultDose: 15,
+        concentrations: [
+            { name: "فيال 500 مجم / 2 مل (250 مجم/مل)", mgPerMl: 250 },
+            { name: "فيال 100 مجم / 2 مل (50 مجم/مل)", mgPerMl: 50 }
+        ]
+    },
+    {
+        id: "moxifloxacin_ophth",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Moxifloxacin (Ophth)",
+        trade: "Vigamox",
+        fileDoseText: "نقطة واحدة في العين المصابة 3 مرات يومياً (TID)",
+        route: "Topical Eye",
+        freq: "3 مرات يومياً (TID)",
+        usage: "علاج التهابات العين البكتيرية مثل التهاب ملتحمة العين",
+        calcType: "fixed_text",
+        fixedNote: "قطرة عينية: نقطة واحدة في العين المصابة 3 مرات يومياً."
+    },
+    {
+        id: "tobramycin_ophth",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Tobramycin",
+        trade: "Tobrex, Tobrin",
+        fileDoseText: "1 - 2 نقطة في العين المصابة كل 8 ساعات (q8h)",
+        route: "Topical Eye",
+        freq: "كل 8 ساعات",
+        usage: "مضاد حيوي موضعي لعلاج عدوى العين البكتيرية",
+        calcType: "fixed_text",
+        fixedNote: "قطرة عينية: 1 إلى 2 نقطة في العين المصابة كل 8 ساعات."
+    },
+    {
+        id: "tobradex_ophth",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Tobramycin + Dexamethasone",
+        trade: "Tobradex",
+        fileDoseText: "1 - 2 نقطة في العين المصابة كل 8 ساعات (q8h)",
+        route: "Topical Eye",
+        freq: "كل 8 ساعات",
+        usage: "مضاد حيوي ومضاد للالتهاب (ممنوع في قرحة القرنية)",
+        calcType: "fixed_text",
+        fixedNote: "قطرة عينية: 1 إلى 2 نقطة كل 8 ساعات (تحذير: ممنوع تماماً في حالات قرحة القرنية)."
+    },
+
+    // --- مضادات الديدان والطفيليات ---
+    {
+        id: "fenbendazole",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Fenbendazole",
+        trade: "Panacur",
+        fileDoseText: "Dogs: 50 mg/kg P.O q24 | Cats: 20-50 mg/kg P.O q24",
+        route: "Oral (P.O)",
+        freq: "كل 24 ساعة لمدة 3-5 أيام",
+        usage: "Anthelmintic (Roundworms, Hookworms, Whipworms, Giardia)",
+        calcType: "species_mg_kg",
+        dogDose: 50,
+        catDose: 20,
+        minDose: 20,
+        maxDose: 50,
+        defaultDose: 50,
+        concentrations: [
+            { name: "معلق Panacur 10% (100 مجم/مل)", mgPerMl: 100 },
+            { name: "معلق Panacur 2.5% (25 مجم/مل)", mgPerMl: 25 }
+        ]
+    },
+    {
+        id: "drontal_deverm",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Praziquantel & Pyrantel (± Febantel)",
+        trade: "Dorntal (Drontal Plus / Cat) / Prazitabs / Evatri / Deverm",
+        fileDoseText: "Cat: 1 tab / 4-5 kg | Dog: 1 tab / 10 kg",
+        route: "Oral (أقراص)",
+        freq: "جرعة قُرصية حسب الوزن",
+        usage: "Tapeworms, Hookworms, Roundworms, Whipworms, Giardia",
+        calcType: "tablet_per_kg",
+        dogKgPerTab: 10,
+        catKgPerTab: 4
+    },
+    {
+        id: "tenizole",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Praziquantel + Fenbendazole",
+        trade: "Tenizole",
+        fileDoseText: "Dogs & Cats: 1 tab / 10 kg",
+        route: "P.O (أقراص)",
+        freq: "قرص لكل 10 كجم",
+        usage: "علاج الديدان المفلطحة والديدان الأسطوانية",
+        calcType: "tablet_per_kg",
+        dogKgPerTab: 10,
+        catKgPerTab: 10
+    },
+    {
+        id: "helmistop",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Fenbendazole + Pyrantel + Praziquantel",
+        trade: "Helmistop, Parafran",
+        fileDoseText: "Dogs & Cats: 1 tab / 10 kg",
+        route: "P.O (أقراص)",
+        freq: "قرص لكل 10 كجم",
+        usage: "علاج مركب وشامل للديدان المعوية بأنواعها",
+        calcType: "tablet_per_kg",
+        dogKgPerTab: 10,
+        catKgPerTab: 10
+    },
+    {
+        id: "dronspot",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Emodepside + Praziquantel",
+        trade: "Dronspot",
+        fileDoseText: "أنبوبة موضعية حسب وزن القطة",
+        route: "Spot-on",
+        freq: "موضعي حسب الوزن",
+        usage: "القضاء على الديدان الشريطية والأسطوانية في القطط",
+        calcType: "fixed_text",
+        fixedNote: "أنبوبة موضعية على القفا (Spot-on) حسب وزن القطة."
+    },
+    {
+        id: "heartgard",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Ivermectin + Pyrantel",
+        trade: "Heartgard Plus",
+        fileDoseText: "قرص شهرياً حسب فئة وزن الكلب",
+        route: "Oral Chew",
+        freq: "شهرياً",
+        usage: "الوقاية من الديدان القلبية وعلاج الديدان المعوية",
+        calcType: "fixed_text",
+        fixedNote: "قرص مضغ شهرياً حسب فئة وزن الكلب."
+    },
+    {
+        id: "imidocarb",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Imidocarb dipropionate",
+        trade: "Imidocarb, Imicarb",
+        fileDoseText: "6.6 mg/kg",
+        route: "IM / SC",
+        freq: "جرعة وتكرر بعد أسبوعين حسب البروتوكول",
+        usage: "MAINLY Babesiosis & Anaplasmosis (علاج البابيزيا وطفيليات الدم)",
+        calcType: "mg_kg",
+        minDose: 6.6,
+        maxDose: 6.6,
+        defaultDose: 6.6,
+        concentrations: [
+            { name: "حقن Imidocarb 12% القياسي (120 مجم/مل)", mgPerMl: 120 },
+            { name: "حقن تركيز 85 مجم/مل (بعض الأنواع)", mgPerMl: 85 }
+        ]
+    },
+    {
+        id: "external_spoton",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Selamectin / Fipronil / Afoxolaner",
+        trade: "Revolution / BARS / Nexgard / Frontline / Safeline / Omni guard",
+        fileDoseText: "Revolution: Cat 2.3-6.8kg | BARS: Dog 10kg, Cat 5-10kg | NexGard: 2.5-6.9 mg/kg",
+        route: "Spot on / Spray / Chewable",
+        freq: "شهرياً للوقاية والعلاج",
+        usage: "Fleas, ticks, lice, mange mites, ear mites, heartworm prevention",
+        calcType: "fixed_text",
+        fixedNote: "تُعطى كأمبولات نقط على القفا (Spot-on) أو رش أو أقراص مضغ حسب فئة وزن الحيوان المكتوبة على العبوة."
+    },
+    {
+        id: "effitix",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Fipronil + Permethrin",
+        trade: "Effitix",
+        fileDoseText: "أنبوبة حسب الوزن (للكلاب فقط - ممنوع للقطط)",
+        route: "Spot-on",
+        freq: "شهرياً",
+        usage: "قتل البراغيث والقراد وطرد البعوض وذباب الرمال في الكلاب",
+        calcType: "fixed_text",
+        fixedNote: "أنبوبة موضعية للكلاب فقط حسب الوزن (تحذير: ممنوع وسام للقطط)."
+    },
+    {
+        id: "advantix",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Imidacloprid + Permethrin",
+        trade: "Advantix",
+        fileDoseText: "أنبوبة شهرياً (للكلاب فقط - سام للقطط)",
+        route: "Spot-on",
+        freq: "شهرياً",
+        usage: "مكافحة وطرد البراغيث والقراد والبعوض في الكلاب",
+        calcType: "fixed_text",
+        fixedNote: "أنبوبة موضعية شهرياً للكلاب فقط (تحذير: سام جداً للقطط)."
+    },
+    {
+        id: "advocate",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Imidacloprid + Moxidectin",
+        trade: "Advocate",
+        fileDoseText: "أمبول موضعي شهري حسب الوزن",
+        route: "Spot-on",
+        freq: "شهرياً",
+        usage: "البراغيث والديدان المعوية والوقاية من ديدان القلب وعث الأذن",
+        calcType: "fixed_text",
+        fixedNote: "أمبول موضعي شهرياً حسب شريحة وزن الحيوان."
+    },
+    {
+        id: "broadline",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Fipronil + (S)-Methoprene + Eprinomectin + Praziquantel",
+        trade: "Broadline",
+        fileDoseText: "محقن موضعي للقطط حسب الوزن (2.5 - 7.5 كجم)",
+        route: "Spot-on",
+        freq: "شهرياً",
+        usage: "حماية متكاملة للقطط ضد البراغيث والقراد والديدان المعوية والقلبية",
+        calcType: "fixed_text",
+        fixedNote: "محقن موضعي (Spot-on) مخصص للقطط حسب فئة الوزن."
+    },
+    {
+        id: "simparica",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Sarolaner",
+        trade: "Simparica",
+        fileDoseText: "Dogs: >= 2 mg/kg قرص شهرياً حسب الوزن",
+        route: "Oral Chew",
+        freq: "شهرياً",
+        usage: "علاج سريع ووقاية ضد البراغيث والقراد والجرب",
+        calcType: "fixed_text",
+        fixedNote: "قرص مضغ شهرياً للكلاب حسب شريحة الوزن (بمعدل لا يقل عن 2 مجم/كجم)."
+    },
+    {
+        id: "simparica_trio",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Sarolaner + Moxidectin + Pyrantel",
+        trade: "Simparica Trio",
+        fileDoseText: "Dogs: قرص شهرياً حسب شريحة الوزن",
+        route: "Oral Chew",
+        freq: "شهرياً",
+        usage: "وقاية ثلاثية: براغيث وقراد + ديدان قلبية + ديدان معوية",
+        calcType: "fixed_text",
+        fixedNote: "قرص مضغ شهرياً للكلاب حسب فئة الوزن."
+    },
+    {
+        id: "bravecto",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Fluralaner",
+        trade: "Bravecto",
+        fileDoseText: "قرص واحد أو أمبول كل 12 أسبوعاً (3 شهور)",
+        route: "Chew / Spot-on",
+        freq: "كل 3 شهور",
+        usage: "حماية ممتدة لمدة 3 شهور ضد البراغيث والقراد والجرب",
+        calcType: "fixed_text",
+        fixedNote: "يعطى مرة واحدة كل 12 أسبوعاً (3 شهور) حسب فئة الوزن."
+    },
+    {
+        id: "scalibor",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Deltamethrin",
+        trade: "Scalibor collar",
+        fileDoseText: "طوق يستمر مفعوله حتى 6 - 12 شهراً",
+        route: "Collar (طوق)",
+        freq: "كل 6 - 12 شهر",
+        usage: "حماية من القراد والبراغيث وذبابة الرمل الناقلة لليشمانيا",
+        calcType: "fixed_text",
+        fixedNote: "طوق يوضع حول رقبة الكلب لحمايته لمدة 6 إلى 12 شهراً."
+    },
+    {
+        id: "seresto",
+        category: "مضادات الديدان والطفيليات (Anthelmintics & Parasites)",
+        active: "Imidacloprid + Flumethrin",
+        trade: "Seresto",
+        fileDoseText: "طوق يمتد مفعوله من 7 إلى 8 أشهر (كلاب وقطط)",
+        route: "Collar (طوق)",
+        freq: "كل 7 - 8 أشهر",
+        usage: "القضاء على البراغيث والقراد وطردها لمدة 8 شهور",
+        calcType: "fixed_text",
+        fixedNote: "طوق وقائي وعلاجي للكلاب والقطط يمتد مفعوله 7 إلى 8 أشهر."
+    },
+
+    // --- مضادات الفطريات ---
+    {
+        id: "itrafin",
+        category: "مضادات الفطريات (Antifungal)",
+        active: "Itraconazole 1% (10 mg/mL)",
+        trade: "Itrafin, Itrapex",
+        fileDoseText: "0.5 mL/kg q24 (5 mg/kg) - أسبوع علاج وأسبوع راحة",
+        route: "Oral (P.O)",
+        freq: "كل 24 ساعة (q24)",
+        usage: "Dermatophytosis / ringworm & systemic fungal infections (علاج الفطريات الجلدية والقوباء الحلقية)",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.5,
+        mgPerMl: 10
+    },
+    {
+        id: "adwizole",
+        category: "مضادات الفطريات (Antifungal)",
+        active: "Miconazole nitrate",
+        trade: "Adwizole spray 1%, Miconaz, Daktarin gel",
+        fileDoseText: "Spray q24 / Oral gel 2-3 times daily",
+        route: "Spray / Topical Oral",
+        freq: "1 - 3 مرات يومياً",
+        usage: "Superficial fungal / dermatophyte infections and oral candidiasis (فطريات الجلد والفم واللثة)",
+        calcType: "fixed_text",
+        fixedNote: "بخاخ موضعي على الجلد مرة يومياً (Adwizole)، أو جل فموي على قرح الفم واللثة 2-3 مرات يومياً (Daktarin/Miconaz)."
+    },
+    {
+        id: "terbinafine_topical",
+        category: "مضادات الفطريات (Antifungal)",
+        active: "Terbinafine",
+        trade: "Lamisil, Lamifen",
+        fileDoseText: "دهان موضعي مرتين يومياً لمدة أسبوعين",
+        route: "Topical Cream",
+        freq: "مرتين يومياً",
+        usage: "علاج القوباء الحلقية والفطريات الجلدية الموضعية",
+        calcType: "fixed_text",
+        fixedNote: "دهان موضعي مرتين يومياً على مكان الإصابة الفطرية لمدة أسبوعين."
+    },
+    {
+        id: "ketoconazole_shamp",
+        category: "مضادات الفطريات (Antifungal)",
+        active: "Ketoconazole",
+        trade: "Nizapex shampoo",
+        fileDoseText: "غسيل مرتين أسبوعياً (تترك الرغوة 10 دقائق)",
+        route: "Topical Shampoo",
+        freq: "مرتين أسبوعياً",
+        usage: "التهابات الجلد الفطرية وقشرة الشعر وفطريات الملاسيزيا",
+        calcType: "fixed_text",
+        fixedNote: "شامبو موضعي: يُغسل به الحيوان مرتين أسبوعياً وتُترك الرغوة لمدة 10 دقائق قبل الشطف."
+    },
+    {
+        id: "clotrimazole_spray",
+        category: "مضادات الفطريات (Antifungal)",
+        active: "Clotrimazole",
+        trade: "Closol spray",
+        fileDoseText: "بخاخ موضعي على الآفات 1 - 2 مرة يومياً",
+        route: "Topical spray",
+        freq: "1 - 2 مرة يومياً",
+        usage: "علاج فطريات الجلد المتنوعة",
+        calcType: "fixed_text",
+        fixedNote: "بخاخ موضعي يُرش على الآفات الفطرية مرة إلى مرتين يومياً."
+    },
+    {
+        id: "fluconazole",
+        category: "مضادات الفطريات (Antifungal)",
+        active: "Fluconazole",
+        trade: "Treflucan, Fungican",
+        fileDoseText: "Dogs & Cats: 5 mg/kg P.O q24h",
+        route: "P.O",
+        freq: "كل 24 ساعة",
+        usage: "علاج داء المبيضات والتهابات الفطريات الجهازية",
+        calcType: "mg_kg",
+        minDose: 5,
+        maxDose: 10,
+        defaultDose: 5,
+        concentrations: [
+            { name: "شراب Diflucan / Treflucan (50 مجم / 5 مل = 10 مجم/مل)", mgPerMl: 10 },
+            { name: "كبسولة 150 مجم مذابة في 15 مل ماء (10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+
+    // --- أدوية داعمة ومكملات (Supportive & Liver & Renal & Joint & Misc) ---
+    {
+        id: "ornicarnal",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Sorbitol, Arginine, Ornithine, L-Citrulline, Betaine / Menbutone",
+        trade: "Ornicarnal plus, Ornipural",
+        fileDoseText: "Dog: 2-3 mL | Cat: 0.5-1 mL",
+        route: "Inj (Slow I/V, I/M, S/C)",
+        freq: "أسبوعياً أو حسب الحجم والحالة",
+        usage: "Hepatoprotective, lipotropic, diuretic & detoxifying agent; stimulates hepatodigestive/renal activity",
+        calcType: "fixed_text",
+        fixedNote: "جرعة إجمالية للحيوان حسب الحجم والوزن: للكلاب 2 إلى 3 مل، وللقطط 0.5 إلى 1 مل."
+    },
+    {
+        id: "hepaticum",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Silymarin + Natural extracts",
+        trade: "Hepaticum, Liver Pak 500",
+        fileDoseText: "ملعقة صغيرة أو كبسولة يومياً مع الطعام",
+        route: "P.O",
+        freq: "يومياً مع الطعام",
+        usage: "حماية خلايا الكبد من التلف ومضاد للأكسدة ودعم إفراز الصفراء",
+        calcType: "fixed_text",
+        fixedNote: "يُعطى عن طريق الفم (ملعقة صغيرة أو كبسولة يومياً مع الطعام)."
+    },
+    {
+        id: "ornitate",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "L-Ornithine L-Aspartate",
+        trade: "Ornitate",
+        fileDoseText: "أمبول يضاف على محاليل التنقيط",
+        route: "Slow I/V, I/M",
+        freq: "مع محاليل التنقيط",
+        usage: "خفض الأمونيا في الدم وحماية الدماغ من الاعتلال الكبدي",
+        calcType: "fixed_text",
+        fixedNote: "يُضاف على محاليل التنقيط الوريدي البطيء أو بالعضل لخفض الأمونيا."
+    },
+    {
+        id: "lysine",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "L-Lysine",
+        trade: "Lysine 100",
+        fileDoseText: "معجون أو مسحوق يخلط بالطعام",
+        route: "P.O",
+        freq: "يومياً مع الطعام",
+        usage: "تقوية المناعة ومقاومة الهربس في القطط ودعم أيض الكبد",
+        calcType: "fixed_text",
+        fixedNote: "معجون أو مسحوق يُخلط مع طعام القطط يومياً."
+    },
+    {
+        id: "calci_holypets",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Calcium + Vitamin D3 + Minerals",
+        trade: "Calci (holy pets), Calci Pet, Osteocare",
+        fileDoseText: "1 mL / 5 kg q12 (0.2 mL/kg)",
+        route: "Oral",
+        freq: "كل 12 - 24 ساعة",
+        usage: "Bone health (دعم نمو العظام والأسنان والوقاية من الكساح ونقص الكالسيوم)",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.2,
+        mgPerMl: null
+    },
+    {
+        id: "hyalutidin",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Hyaluronic acid + Chondroitin",
+        trade: "Hyalutidin DC",
+        fileDoseText: "يضاف للطعام يومياً حسب وزن الحيوان",
+        route: "Oral liquid",
+        freq: "يومياً",
+        usage: "تغذية الغضاريف والمحافظة على السائل الزلالي وعلاج الخشونة",
+        calcType: "fixed_text",
+        fixedNote: "سائل فموي يضاف للطعام يومياً حسب وزن الحيوان."
+    },
+    {
+        id: "eliteflex",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Omega-3 + Glucosamine + Chondroitin",
+        trade: "EliteFlex Forte",
+        fileDoseText: "يخلط مع الوجبة يومياً حسب الوزن",
+        route: "Oral liquid",
+        freq: "يومياً",
+        usage: "دعم حركة المفاصل والغضاريف وتسكين آلام المفاصل المزمنة",
+        calcType: "fixed_text",
+        fixedNote: "سائل يخلط مع الوجبة يومياً حسب وزن الحيوان."
+    },
+    {
+        id: "pronefra",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Calcium & Magnesium carbonate + Chitosan + Marine oligopeptides",
+        trade: "Pronefra",
+        fileDoseText: "Cats: 1 mL / 4 kg twice daily (0.25 mL/kg) | Dogs: 1 mL / 5 kg twice daily (0.2 mL/kg)",
+        route: "Oral liquid",
+        freq: "مرتين يومياً (Twice daily / q12)",
+        usage: "Renal support (دعم وظائف الكلى في الفشل الكلوي المزمن وربط الفوسفور بالأمعاء)",
+        calcType: "species_ml_kg",
+        dogMlPerKg: 0.2,
+        catMlPerKg: 0.25
+    },
+    {
+        id: "cystone",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Herbal urinary formulation",
+        trade: "Cystone",
+        fileDoseText: "قرص واحد مرتين يومياً",
+        route: "P.O",
+        freq: "مرتين يومياً",
+        usage: "معادلة حموضة البول وتفتيت الحصوات وتقليل الإجهاد التأكسدي",
+        calcType: "fixed_text",
+        fixedNote: "قرص واحد بالفم مرتين يومياً."
+    },
+    {
+        id: "proximol",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Halopregnan / Ammi visnaga",
+        trade: "Proximol",
+        fileDoseText: "قرص واحد مرتين يومياً",
+        route: "P.O",
+        freq: "مرتين يومياً",
+        usage: "باسط لعضلات الحالب لتسهيل طرد الحصوات الصغيرة",
+        calcType: "fixed_text",
+        fixedNote: "قرص واحد بالفم مرتين يومياً."
+    },
+    {
+        id: "rowatinex",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Terpene combination",
+        trade: "Rowatinex, Urinex",
+        fileDoseText: "كبسولة واحدة مرتين يومياً",
+        route: "P.O",
+        freq: "مرتين يومياً",
+        usage: "إدرار البول وتسكين المغص الكلوي وتسهيل تفتيت ونزول الحصوات",
+        calcType: "fixed_text",
+        fixedNote: "كبسولة واحدة بالفم مرتين يومياً."
+    },
+    {
+        id: "oxalofree",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Anti-oxalate formulation",
+        trade: "Oxalofree",
+        fileDoseText: "سائل معلق يعطى بالفم حسب الجرعة",
+        route: "Oral susp",
+        freq: "حسب الجرعة المحددة",
+        usage: "تقليل ومنع تكون بلورات وحصوات أوكسالات الكالسيوم بالبول",
+        calcType: "fixed_text",
+        fixedNote: "سائل معلق يعطى بالفم لمنع حصوات الأوكسالات."
+    },
+    {
+        id: "kidmin",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Renal Specific Amino Acids",
+        trade: "Kidmin",
+        fileDoseText: "حسب خطة المحاليل وحالة الحيوان",
+        route: "I/V Infusion",
+        freq: "تنقيط وريدي",
+        usage: "إمداد الجسم بالأحماض الأمينية الأساسية بالفشل الكلوي الحاد والمزمن",
+        calcType: "fixed_text",
+        fixedNote: "محلول تنقيط وريدي يُعطى حسب خطة السوائل وحالة الكلى."
+    },
+    {
+        id: "cystaid",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "N-acetyl-D-glucosamine",
+        trade: "Cystaid",
+        fileDoseText: "كبسولة تفرغ على الطعام يومياً للقطط",
+        route: "Oral caps",
+        freq: "يومياً",
+        usage: "دعم بطانة المثانة المخاطية وعلاج التهاب المثانة مجهول السبب (FIC)",
+        calcType: "fixed_text",
+        fixedNote: "كبسولة تفرغ على الطعام يومياً للقطط."
+    },
+    {
+        id: "renate",
+        category: "أدوية ومكملات الكلى والمسالك (Renal & Urinary)",
+        active: "Renal Support Complex",
+        trade: "Renate",
+        fileDoseText: "كيس يخلط مع طعام القطط يومياً",
+        route: "Oral powder",
+        freq: "يومياً",
+        usage: "الحفاظ على صحة الكلى ودعم تدفق الدم والضغط الشرياني الكلوي",
+        calcType: "fixed_text",
+        fixedNote: "كيس مسحوق يخلط مع طعام القطط يومياً."
+    },
+    {
+        id: "multiboost",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Beta Glucans, Vit E, Vit C, B-Vitamins, L-Carnitine, Chelated Zinc",
+        trade: "Multiboost",
+        fileDoseText: "Up to 5kg: 2.5ml (1 Pump) | 5-10kg: 5ml (2 Pumps) | 10-20kg: 10ml (4 Pumps) | >20kg: 15ml (6 Pumps)",
+        route: "Oral / Add on food",
+        freq: "يومياً (Daily)",
+        usage: "Supporting the immune system (رفع المناعة وفاتح للشهية)",
+        calcType: "weight_bracket"
+    },
+    {
+        id: "multi_plus",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Multivitamin & Minerals",
+        trade: "Multi Plus",
+        fileDoseText: "جرعة يومية مع الوجبة",
+        route: "P.O",
+        freq: "يومياً",
+        usage: "مكمل غذائي لتعويض نقص الفيتامينات ورفع المناعة وفتح الشهية",
+        calcType: "fixed_text",
+        fixedNote: "يعطى كجرعة يومية مع الوجبة."
+    },
+    {
+        id: "adevet",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Vit A, Vit E & Vit D",
+        trade: "ADEVET",
+        fileDoseText: "Cattle/Camel/Horse: 2-4 mL | Calves/Foals: 0.5-1 mL",
+        route: "IM",
+        freq: "حسب الحالة",
+        usage: "Supporting the immune system",
+        calcType: "fixed_text",
+        fixedNote: "للحيوانات الكبيرة (أبقار/إبل/خيول): 2 - 4 مل بالعضل | للعجول والأمهار: 0.5 - 1 مل بالعضل."
+    },
+    {
+        id: "levothyroxine",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Levothyroxine sodium",
+        trade: "ThyroFit 25",
+        fileDoseText: "Dogs: 0.02 mg/kg q12h (كبداية)",
+        route: "P.O",
+        freq: "كل 12 ساعة",
+        usage: "علاج قصور إفراز الغدة الدرقية في الكلاب (Hypothyroidism)",
+        calcType: "mg_kg",
+        minDose: 0.02,
+        maxDose: 0.02,
+        defaultDose: 0.02,
+        concentrations: [
+            { name: "قرص 100 ميكروجرام (0.1 مجم) مذاب في 5 مل ماء (0.02 مجم/مل)", mgPerMl: 0.02 }
+        ]
+    },
+    {
+        id: "cerebrolysin",
+        category: "أدوية داعمة ومكملات (Supportive)",
+        active: "Cerebrolysin",
+        trade: "Cerebrolysin inj",
+        fileDoseText: "حقن وريدي أو عضلي يحدد حسب الإصابة",
+        route: "Slow I/V, I/M",
+        freq: "حسب الحالة العصبية",
+        usage: "حماية ودعم الخلايا العصبية بعد الصدمات ونقص التروية الدماغية",
+        calcType: "fixed_text",
+        fixedNote: "يعطى بالحقن الوريدي البطيء أو العضلي حسب شدة الإصابة العصبية."
+    },
+    {
+        id: "respro_p",
+        category: "4. أدوية الجهاز التنفسي (Respiratory)",
+        active: "Herbal Respiratory Tonic",
+        trade: "Respro-P",
+        fileDoseText: "شراب بالفم مرتين يومياً",
+        route: "Oral syrup",
+        freq: "مرتين يومياً",
+        usage: "موسع شعب ومقوي للجهاز التنفسي وتحسين التنفس",
+        calcType: "fixed_text",
+        fixedNote: "شراب عشبي يعطى بالفم مرتين يومياً."
+    },
+
+    // --- مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs) ---
+    {
+        id: "dexamethasone",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Dexamethasone Sodium Phosphate",
+        trade: "Dexamethasone / Hydrodex 50 / Diuro-Vet Inj / Dexa 5",
+        fileDoseText: "0.01 - 0.16 mg/kg q24 (1 ml/10 kg عادية وتصل 1 ml/kg بالصدمة)",
+        route: "IM / SC / IV",
+        freq: "كل 24 ساعة (q24)",
+        usage: "Anti-inflammatory, anti-allergic, shock, reduction of inflammatory/pulmonary edema",
+        calcType: "mg_kg",
+        minDose: 0.01,
+        maxDose: 0.16,
+        defaultDose: 0.1,
+        concentrations: [
+            { name: "حقن بيطري 0.2% (2 مجم/مل)", mgPerMl: 2 },
+            { name: "حقن بيطري 0.4% (4 مجم/مل)", mgPerMl: 4 },
+            { name: "أمبول بشري (8 مجم / 2 مل = 4 مجم/مل)", mgPerMl: 4 }
+        ]
+    },
+    {
+        id: "prednisolone",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Prednisolone / Prednisone",
+        trade: "Hostacortin H, Solupred",
+        fileDoseText: "Dogs & Cats: 1 mg/kg P.O q24h",
+        route: "P.O",
+        freq: "كل 24 ساعة",
+        usage: "كورتيكوستيرويد مضاد للالتهاب والحساسية ومثبط للمناعة",
+        calcType: "mg_kg",
+        minDose: 0.5,
+        maxDose: 2,
+        defaultDose: 1,
+        concentrations: [
+            { name: "قرص Solupred 5 مجم مذاب في 5 مل ماء (1 مجم/مل)", mgPerMl: 1 },
+            { name: "قرص Solupred 20 مجم مذاب في 10 مل ماء (2 مجم/مل)", mgPerMl: 2 },
+            { name: "شراب بريدنيزولون (15 مجم / 5 مل = 3 مجم/مل)", mgPerMl: 3 }
+        ]
+    },
+    {
+        id: "meloxicam",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Meloxicam",
+        trade: "Meloxidyl, Mobic, Metacam",
+        fileDoseText: "Dogs & Cats: 0.2 mg/kg (1 ml / 100 kg B.W بتركيز 20 مجم/مل)",
+        route: "I/V, P.O, S/C",
+        freq: "مرة يومياً (تخفض إلى 0.1 مجم/كجم بعد اليوم الأول)",
+        usage: "مضاد التهاب غير ستيرويدي (NSAID) لتخفيف آلام المفاصل والعمليات",
+        calcType: "mg_kg",
+        minDose: 0.05,
+        maxDose: 0.2,
+        defaultDose: 0.2,
+        concentrations: [
+            { name: "حقن بيطري 2% (20 مجم/مل -> 1 مل/100 كجم)", mgPerMl: 20 },
+            { name: "حقن بيطري 0.5% (5 مجم/مل)", mgPerMl: 5 },
+            { name: "معلق فموي للكلاب (1.5 مجم/مل)", mgPerMl: 1.5 },
+            { name: "أمبول Mobic بشري (15 مجم / 1.5 مل = 10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "ketoprofen",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Ketoprofen",
+        trade: "Ketodel, Ketocure, Ketofen",
+        fileDoseText: "Dogs & Cats: 2 mg/kg (1 ml / 100 kg B.W بتركيز 20%)",
+        route: "I/M, S/C, I/V",
+        freq: "كل 24 ساعة",
+        usage: "مضاد التهاب غير ستيرويدي مسكن للآلام وخافض للحرارة",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 2,
+        defaultDose: 2,
+        concentrations: [
+            { name: "حقن بيطري 10% (100 مجم/مل)", mgPerMl: 100 },
+            { name: "حقن بيطري 1% (10 مجم/مل)", mgPerMl: 10 },
+            { name: "حقن تركيز 200 مجم/مل (1 مل/100 كجم)", mgPerMl: 200 }
+        ]
+    },
+    {
+        id: "dipyrone",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Dipyrone (Metamizole)",
+        trade: "Analgin",
+        fileDoseText: "Dogs: 25 mg/kg (أو 2 ml/dog حسب التركيز) - ممنوع للقطط",
+        route: "I/M, I/V",
+        freq: "عند اللزوم (للكلاب فقط)",
+        usage: "مسكن للآلام، خافض للحرارة، ومضاد للتقلصات والمغص في الكلاب (ممنوع للقطط)",
+        calcType: "mg_kg",
+        minDose: 2,
+        maxDose: 25,
+        defaultDose: 2,
+        concentrations: [
+            { name: "حقن Analgin 50% (500 مجم/مل)", mgPerMl: 500 }
+        ]
+    },
+    {
+        id: "alphachymotrypsin",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Alphachymotrypsin",
+        trade: "a-chymotrypsin",
+        fileDoseText: "حسب وزن الحيوان وحجم الإصابة",
+        route: "I/M",
+        freq: "يومياً بالعضل",
+        usage: "إنزيم مضاد للالتهاب ومضاد للارتشاح والتورم والكدمات",
+        calcType: "fixed_text",
+        fixedNote: "أمبول عضلي يعطى حسب وزن الحيوان وحجم الإصابة والارتشاح."
+    },
+    {
+        id: "alphintern",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Chymotrypsin + Trypsin",
+        trade: "Alphintern",
+        fileDoseText: "قرص مرتين إلى 3 مرات يومياً قبل الأكل",
+        route: "P.O",
+        freq: "2 - 3 مرات يومياً قبل الأكل",
+        usage: "علاج التورم والارتشاح والتهابات ما بعد الجراحة أو الصدمات",
+        calcType: "fixed_text",
+        fixedNote: "أقراص فموية (قرص 2-3 مرات يومياً قبل الأكل على معدة فارغة)."
+    },
+    {
+        id: "maxilase",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Alpha-amylase",
+        trade: "Maxilase",
+        fileDoseText: "شراب يعطى حسب الوزن مرتين يومياً",
+        route: "P.O",
+        freq: "مرتين يومياً",
+        usage: "إنزيم مضاد للالتهاب ومزيل للوذمات والتورمات",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.5,
+        mgPerMl: null
+    },
+    {
+        id: "lidocaine",
+        category: "3. أدوية التخدير والمهدئات (Sedatives)",
+        active: "Lidocaine HCl",
+        trade: "Lidocaine 1% / 2%",
+        fileDoseText: "Dogs: 2 mg/kg I/V (مضاد اضطراب نبض) أو تخدير موضعي",
+        route: "Local / I/V",
+        freq: "حسب الاستخدام (تخدير موضعي أو وريدي للقلب)",
+        usage: "مخدر موضعي، ومضاد لاضطراب ضربات القلب البطينية",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 4,
+        defaultDose: 2,
+        concentrations: [
+            { name: "محلول Lidocaine 1% (10 مجم/مل)", mgPerMl: 10 },
+            { name: "محلول Lidocaine 2% (20 مجم/مل)", mgPerMl: 20 }
+        ]
+    },
+    {
+        id: "phenylbutazone",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Phenylbutazone",
+        trade: "Phenyl-ject",
+        fileDoseText: "0.5 - 1 mL / 5 kg (0.1 - 0.2 mL/kg)",
+        route: "IM",
+        freq: "حسب إرشادات الطبيب",
+        usage: "Musculoskeletal, osteoarthritis, antipyretic, analgesic",
+        calcType: "direct_ml_range",
+        minMlPerKg: 0.1,
+        maxMlPerKg: 0.2,
+        defaultMlPerKg: 0.1
+    },
+    {
+        id: "carprofen",
+        category: "مضادات الالتهاب والمسكنات (Anti-inflammatory & NSAIDs)",
+        active: "Carprofen",
+        trade: "Inflevex",
+        fileDoseText: "1 tab / 25 kg",
+        route: "Oral (أقراص)",
+        freq: "يومياً",
+        usage: "Analgesic & anti-inflammatory",
+        calcType: "tablet_per_kg",
+        dogKgPerTab: 25,
+        catKgPerTab: 25
+    },
+
+    // --- مضادات القيء والإسهال والحموضة والملينات (GIT Drugs) ---
+    {
+        id: "ondansetron",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Ondansetron",
+        trade: "Zofran amp / Zofatrone amp / Danset amp",
+        fileDoseText: "0.1 - 0.5 mg/kg q8-12h",
+        route: "IV / IM / P.O",
+        freq: "كل 8 - 12 ساعة",
+        usage: "Antiemetic (مضاد قوي جداً للقيء والغثيان الحاد مثل البارفو)",
+        calcType: "mg_kg",
+        minDose: 0.1,
+        maxDose: 0.5,
+        defaultDose: 0.5,
+        concentrations: [
+            { name: "أمبول Zofran / Danset (4 مجم/2 مل أو 8 مجم/4 مل = 2 مجم/مل)", mgPerMl: 2 }
+        ]
+    },
+    {
+        id: "metoclopramide",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Metoclopramide",
+        trade: "Primperan amp",
+        fileDoseText: "0.2 - 0.5 mg/kg q6-12h",
+        route: "IV / IM / S/C / P.O",
+        freq: "كل 6 - 12 ساعة",
+        usage: "Increase intestinal motility & Antiemetic (وقف القيء وتحفيز الحركة الدودية)",
+        calcType: "mg_kg",
+        minDose: 0.2,
+        maxDose: 0.5,
+        defaultDose: 0.5,
+        concentrations: [
+            { name: "أمبول Primperan (10 مجم / 2 مل = 5 مجم/مل)", mgPerMl: 5 },
+            { name: "شراب Primperan (5 مجم / 5 مل = 1 مجم/مل)", mgPerMl: 1 }
+        ]
+    },
+    {
+        id: "metronidazole",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Metronidazole",
+        trade: "Flagyl / Amrizole",
+        fileDoseText: "Dogs & Cats: 10 - 25 mg/kg q12h",
+        route: "Oral (P.O) / IV",
+        freq: "كل 12 ساعة (q12)",
+        usage: "Antibacterial (anaerobes) & antiprotozoal agent (علاج الجيارديا والبكتيريا اللاهوائية والتهابات الأمعاء)",
+        calcType: "mg_kg",
+        minDose: 10,
+        maxDose: 25,
+        defaultDose: 25,
+        concentrations: [
+            { name: "شراب Flagyl / Amrizole (125 مجم / 5 مل = 25 مجم/مل)", mgPerMl: 25 },
+            { name: "شراب Flagyl (200 مجم / 5 مل = 40 مجم/مل)", mgPerMl: 40 },
+            { name: "محلول وريدي Flagyl IV (500 مجم / 100 مل = 5 مجم/مل)", mgPerMl: 5 }
+        ]
+    },
+    {
+        id: "nifuroxazide",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Nifuroxazide",
+        trade: "Antinal",
+        fileDoseText: "Dogs & Cats: 22 mg/kg q12 (1 mL / 2 kg = 0.5 mL/kg)",
+        route: "Oral (P.O)",
+        freq: "كل 12 ساعة (q12)",
+        usage: "Broad spectrum intestinal antiseptic for diarrhea and gastroenteritis",
+        calcType: "mg_kg",
+        minDose: 22,
+        maxDose: 22,
+        defaultDose: 22,
+        concentrations: [
+            { name: "شراب Antinal القياسي (220 مجم / 5 مل = 44 مجم/مل)", mgPerMl: 44 }
+        ]
+    },
+    {
+        id: "kapect",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Kaolin + Pectin + Sulphamethoxazole + Trimethoprim",
+        trade: "Kapect compound",
+        fileDoseText: "1 mL / 2 kg (0.5 mL/kg)",
+        route: "Oral (P.O)",
+        freq: "كل 12 ساعة",
+        usage: "Anti-diarrheal (قابض ومضاد بكتيري للإسهال وتلطيف جدار الأمعاء)",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.5,
+        mgPerMl: null
+    },
+    {
+        id: "scourban",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Sulfonamides + Kaolin + Hyoscine",
+        trade: "Scourban plus",
+        fileDoseText: "1 mL / 1 kg (أو حسب تركيز العبوة لكل 8-10 كجم)",
+        route: "P.O",
+        freq: "كل 12 ساعة",
+        usage: "علاج النزلات المعوية والإسهال البكتيري والمغص المعوي",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.125,
+        mgPerMl: null
+    },
+    {
+        id: "pet_scour",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Antidiarrheal mixture",
+        trade: "Pet scour",
+        fileDoseText: "1 mL / 2 kg (0.5 mL/kg)",
+        route: "P.O",
+        freq: "كل 12 ساعة",
+        usage: "علاج الإسهال الحاد والتهاب الأمعاء",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.5,
+        mgPerMl: null
+    },
+    {
+        id: "streptoquin",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Streptomycin + Sulfas + Hydroxyquinoline",
+        trade: "Streptoquin",
+        fileDoseText: "قرص مرتين يومياً للكلاب الكبيرة",
+        route: "P.O",
+        freq: "مرتين يومياً",
+        usage: "علاج النزلات المعوية والإسهال المصحوب بمغص وتقلصات",
+        calcType: "fixed_text",
+        fixedNote: "قرص بالفم مرتين يومياً للكلاب الكبيرة."
+    },
+    {
+        id: "ranitidine",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Ranitidine",
+        trade: "Ranitidine 50mg/5ml / Zantac amp / Zantac tab",
+        fileDoseText: "2 mg/kg q12 (Slow I/V, S/C, P.O)",
+        route: "IV / SC / Oral",
+        freq: "كل 12 ساعة (q12)",
+        usage: "H2 receptor antagonist: treatment of gastric and duodenal ulcers & reflux",
+        calcType: "mg_kg",
+        minDose: 2,
+        maxDose: 2,
+        defaultDose: 2,
+        concentrations: [
+            { name: "أمبول Zantac / Ranitidine (50 مجم / 2 مل = 25 مجم/مل)", mgPerMl: 25 },
+            { name: "شراب Ranitidine (50 مجم / 5 مل = 10 مجم/مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "famotidine",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Famotidine",
+        trade: "Antodine amp / Antodine 40 mg tab",
+        fileDoseText: "1 mg/kg q12 (Slow I/V, S/C, P.O)",
+        route: "IV / SC / Oral",
+        freq: "كل 12 ساعة (q12)",
+        usage: "H2 receptor antagonist: treatment of gastric ulcers and upper GI bleeding",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 1,
+        defaultDose: 1,
+        concentrations: [
+            { name: "أمبول Antodine (20 مجم / 2 مل = 10 مجم/مل)", mgPerMl: 10 },
+            { name: "قرص 40 مجم مذاب في 10 مل ماء (4 مجم/مل)", mgPerMl: 4 },
+            { name: "قرص 20 مجم مذاب في 5 مل ماء (4 مجم/مل)", mgPerMl: 4 }
+        ]
+    },
+    {
+        id: "pantoprazole",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Pantoprazole",
+        trade: "Zurcal vial 40 mg / Controloc vial 40 mg / Controloc tab 40 mg",
+        fileDoseText: "1 mg/kg q12",
+        route: "IV / Oral",
+        freq: "كل 12 ساعة (q12)",
+        usage: "Proton pump inhibitor (PPI): treatment of gastric and duodenal ulcers & esophagitis",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 1,
+        defaultDose: 1,
+        concentrations: [
+            { name: "فيال 40 مجم محلول في 10 مل محلول ملح (4 مجم/مل)", mgPerMl: 4 },
+            { name: "فيال 40 مجم محلول في 20 مل محلول ملح (2 مجم/مل)", mgPerMl: 2 },
+            { name: "فيال 40 مجم محلول في 8 مل محلول ملح (5 مجم/مل)", mgPerMl: 5 }
+        ]
+    },
+    {
+        id: "mucogel",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Al(OH)3 + Mg(OH)2 + Oxethazaine",
+        trade: "Mucogel",
+        fileDoseText: "حسب الحجم بعد الوجبات",
+        route: "P.O",
+        freq: "بعد الوجبات",
+        usage: "معادلة حموضة المعدة السريعة وحماية الجدار المخاطي",
+        calcType: "fixed_text",
+        fixedNote: "شراب مضاد للحموضة يُعطى بالفم حسب حجم الحيوان بعد الوجبات."
+    },
+    {
+        id: "lactulose",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Lactulose",
+        trade: "Duphalac, Lactulose",
+        fileDoseText: "1 mL / 5 kg (0.2 mL/kg) q8h حتى يلين البراز",
+        route: "P.O",
+        freq: "كل 8 ساعات",
+        usage: "ملين أسموزي للإمساك، وخفض الأمونيا في الاعتلال الكبدي",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.2,
+        mgPerMl: null
+    },
+    {
+        id: "picolax",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Sodium picosulphate",
+        trade: "Picolax drops",
+        fileDoseText: "2 - 3 قطرات لكل حيوان كل 8 ساعات (q8h)",
+        route: "P.O",
+        freq: "كل 8 ساعات",
+        usage: "ملين منبه لحركة الأمعاء الدودية لعلاج الإمساك الحاد",
+        calcType: "fixed_text",
+        fixedNote: "نقط فموية: 2 إلى 3 قطرات لكل حيوان كل 8 ساعات."
+    },
+    {
+        id: "enemax",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Disodium + Monosodium phosphate",
+        trade: "Enemax",
+        fileDoseText: "حقنة شرجية (تستخدم بحذر شديد في القطط)",
+        route: "Rectal Enema",
+        freq: "عند الضرورة القصوى",
+        usage: "تفريغ القولون الفوري في حالات انحشار البراز الشديد",
+        calcType: "fixed_text",
+        fixedNote: "حقنة شرجية لتفريغ القولون (تحذير: الفوسفات الشرجي خطير جداً في القطط والجراء الصغيرة وقد يسبب تسمماً كلوياً واضطراب كالسيوم حاد)."
+    },
+    {
+        id: "bolovia",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Hairball paste with Arbocel",
+        trade: "Bolovia paste",
+        fileDoseText: "2 - 5 سم معجون بالفم للقطط يومياً",
+        route: "P.O",
+        freq: "يومياً",
+        usage: "تفتيت وتسهيل خروج كرات الشعر ومنع انسداد الهضم",
+        calcType: "fixed_text",
+        fixedNote: "2 إلى 5 سم معجون بالفم للقطط يومياً."
+    },
+    {
+        id: "eucarbon",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Activated Charcoal",
+        trade: "Eucarbon",
+        fileDoseText: "1 - 2 قرص بالفم حسب الوزن",
+        route: "P.O",
+        freq: "حسب الحالة",
+        usage: "امتصاص الغازات والسموم وعلاج الانتفاخ والتخمر المعوي",
+        calcType: "fixed_text",
+        fixedNote: "1 إلى 2 قرص بالفم حسب وزن الحيوان."
+    },
+    {
+        id: "disflatyl",
+        category: "مضادات القيء والإسهال والحموضة (GIT Drugs)",
+        active: "Simethicone",
+        trade: "Disflatyl",
+        fileDoseText: "نقاط بالفم حسب الحجم 2 - 3 مرات يومياً",
+        route: "P.O",
+        freq: "2 - 3 مرات يومياً",
+        usage: "تكسير فقاعات الغازات والتخلص من الانتفاخ والمغص",
+        calcType: "fixed_text",
+        fixedNote: "نقاط بالفم حسب حجم الحيوان 2 إلى 3 مرات يومياً."
+    },
+
+    // --- مضادات النزيف ومخثرات الدم (Hemostatic Drugs) ---
+    {
+        id: "vitamin_k1",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Vitamin K1 (Phytomenadione)",
+        trade: "Amri-K, Vitamin K tab",
+        fileDoseText: "Dogs & Cats: 2.5 mg/kg q12h",
+        route: "S/C, P.O",
+        freq: "كل 12 ساعة",
+        usage: "بناء عوامل التجلط بالكبد وعلاج تسمم مبيدات القوارض (Warfarin)",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 5,
+        defaultDose: 2.5,
+        concentrations: [
+            { name: "أمبول Amri-K (10 مجم / مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "ethamsylate",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Ethamsylate",
+        trade: "Haemostop, Dicynone",
+        fileDoseText: "1 mL / 10 kg (0.1 mL/kg)",
+        route: "I/M, I/V, P.O",
+        freq: "كل 8 - 12 ساعة عند النزيف",
+        usage: "زيادة التصاق الصفائح الدموية وتقوية الشعيرات لوقف النزيف",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.1,
+        mgPerMl: 125
+    },
+    {
+        id: "tranexamic_acid",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Tranexamic acid",
+        trade: "Kapron",
+        fileDoseText: "1 mL / 10 kg (0.1 mL/kg) q8h وريد ببطء",
+        route: "Slow I/V, P.O",
+        freq: "كل 8 ساعات",
+        usage: "مضاد لانحلال الفبرين لوقف النزيف الشديد بعد الجراحات أو الصدمات",
+        calcType: "direct_ml_kg",
+        mlPerKg: 0.1,
+        mgPerMl: 100
+    },
+
+    // --- مضادات الحساسية والهيستامين (Antihistaminic Drugs) ---
+    {
+        id: "pheniramine",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Pheniramine maleate",
+        trade: "Avil",
+        fileDoseText: "Dogs: 4-8 mg q12h | Cats: 2-4 mg q12h",
+        route: "I/M, Slow I/V",
+        freq: "كل 12 ساعة",
+        usage: "علاج أعراض الحساسية الحادة، الحكة الجلدية ولسعات الحشرات",
+        calcType: "mg_kg",
+        minDose: 0.5,
+        maxDose: 1,
+        defaultDose: 0.5,
+        concentrations: [
+            { name: "أمبول Avil (45.5 مجم / 2 مل = 22.75 مجم/مل)", mgPerMl: 22.75 }
+        ]
+    },
+    {
+        id: "loratadine",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Loratadine",
+        trade: "Claritine",
+        fileDoseText: "Dogs: 5 - 15 mg q24h",
+        route: "P.O",
+        freq: "كل 24 ساعة",
+        usage: "مضاد هيستامين طويل المفعول غير مسبب للنعاس للحساسية المزمنة",
+        calcType: "mg_kg",
+        minDose: 0.25,
+        maxDose: 0.5,
+        defaultDose: 0.5,
+        concentrations: [
+            { name: "شراب Claritine (5 مجم / 5 مل = 1 مجم/مل)", mgPerMl: 1 }
+        ]
+    },
+    {
+        id: "cetirizine",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Cetirizine",
+        trade: "Zyrtec",
+        fileDoseText: "Dogs: 1 mg/kg q24h | Cats: 5 mg per cat q24h",
+        route: "P.O",
+        freq: "كل 24 ساعة",
+        usage: "علاج الحساسية والطفح الجلدي والحكة",
+        calcType: "mg_kg",
+        minDose: 1,
+        maxDose: 1,
+        defaultDose: 1,
+        concentrations: [
+            { name: "شراب Zyrtec (5 مجم / 5 مل = 1 مجم/مل)", mgPerMl: 1 },
+            { name: "نقط Zyrtec (10 مجم / مل)", mgPerMl: 10 }
+        ]
+    },
+    {
+        id: "chlorpheniramine",
+        category: "مضادات النزيف والحساسية (Hemostatics & Antihistamines)",
+        active: "Chlorpheniramine maleate",
+        trade: "Histacure",
+        fileDoseText: "1 mL / 10 kg (0.1 mL/kg) وتصل إلى 1 mL/kg بالصدمة",
+        route: "I/M, I/V, P.O",
+        freq: "حسب الحالة",
+        usage: "السيطرة على تفاعلات الحساسية الشديدة والأرتكاريا",
+        calcType: "direct_ml_range",
+        minMlPerKg: 0.1,
+        maxMlPerKg: 1.0,
+        defaultMlPerKg: 0.1
+    },
+
+    // --- قطرات ومستحضرات العيون والأذن الإضافية ---
+    {
+        id: "fluorometholone",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Fluorometholone",
+        trade: "Efemyo",
+        fileDoseText: "Dogs & Cats: نقطة واحدة 2 - 4 مرات يومياً",
+        route: "Topical Eye",
+        freq: "2 - 4 مرات يومياً",
+        usage: "كورتيكوستيرويد موضعي لعلاج التهابات العين غير المعدية",
+        calcType: "fixed_text",
+        fixedNote: "قطرة عينية: نقطة واحدة 2 إلى 4 مرات يومياً (ممنوع في قرح القرنية)."
+    },
+    {
+        id: "hyfresh",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Sodium Hyaluronate",
+        trade: "Hyfresh",
+        fileDoseText: "1 - 2 نقطة بالعين عدة مرات يومياً",
+        route: "Topical Eye",
+        freq: "عدة مرات يومياً",
+        usage: "دموع صناعية لترطيب العين وعلاج جفاف القرنية والتهيج",
+        calcType: "fixed_text",
+        fixedNote: "قطرة مرطبة للعين: 1 إلى 2 نقطة عدة مرات يومياً."
+    },
+    {
+        id: "latanoprost",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Latanoprost",
+        trade: "Xalatan",
+        fileDoseText: "نقطة واحدة بالعين المصابة كل 12 - 24 ساعة",
+        route: "Topical Eye",
+        freq: "كل 12 - 24 ساعة",
+        usage: "خفض ضغط العين وعلاج الجلوكوما (المياه الزرقاء)",
+        calcType: "fixed_text",
+        fixedNote: "نقطة واحدة في العين المصابة كل 12 إلى 24 ساعة."
+    },
+    {
+        id: "benoxinate",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Benoxinate HCl",
+        trade: "Benox",
+        fileDoseText: "1 - 2 نقطة قبل الفحص أو الإجراء مباشرة",
+        route: "Topical Eye",
+        freq: "قبل الفحص مباشرة",
+        usage: "مخدر موضعي سريع لسطح العين لإجراء الفحوصات والتدخلات",
+        calcType: "fixed_text",
+        fixedNote: "1 إلى 2 نقطة بالعين قبل الفحص أو التدخل الجراحي السطحي مباشرة."
+    },
+    {
+        id: "fluca",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Sodium Cromoglicate + Fluorometholone",
+        trade: "Fluca",
+        fileDoseText: "1 - 2 نقطة 2 - 3 مرات يومياً",
+        route: "Topical Eye",
+        freq: "2 - 3 مرات يومياً",
+        usage: "مضاد للحساسية والتهابات العين التحسسية",
+        calcType: "fixed_text",
+        fixedNote: "1 إلى 2 نقطة بالعين 2 إلى 3 مرات يومياً."
+    },
+    {
+        id: "otic_drops",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Otic drops combinations",
+        trade: "Otal, Viotic, Cipro",
+        fileDoseText: "3 - 5 قطرات بمجرى الأذن مرتين يومياً مع التدليك",
+        route: "Otic (Ear)",
+        freq: "مرتين يومياً",
+        usage: "علاج التهابات الأذن الخارجية البكتيرية والفطرية والمؤلمة",
+        calcType: "fixed_text",
+        fixedNote: "3 إلى 5 قطرات بمجرى الأذن مرتين يومياً مع تدليك قاعدة الأذن."
+    },
+    {
+        id: "triamcinolone_pomad",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Triamcinolone acetonide",
+        trade: "Kenacort-A Pomad",
+        fileDoseText: "دهان موضعي رقيق مرتين يومياً",
+        route: "Topical",
+        freq: "مرتين يومياً",
+        usage: "مضاد للالتهاب والحكة الموضعية في الأذن والجلد",
+        calcType: "fixed_text",
+        fixedNote: "دهان موضعي رقيق مرتين يومياً."
+    },
+    {
+        id: "aura_cure",
+        category: "قطرات ومستحضرات العيون والأذن (Eyes & Ears)",
+        active: "Ear drops for ear mites",
+        trade: "Aura Cure",
+        fileDoseText: "بضع قطرات بالأذن يومياً",
+        route: "Otic (Ear)",
+        freq: "يومياً",
+        usage: "تنظيف الأذن وعلاج حلم الأذن والالتهابات المصاحبة",
+        calcType: "fixed_text",
+        fixedNote: "بضع قطرات داخل الأذن يومياً لعلاج عث الأذن."
+    },
+
+    // --- التئام الجروح والجلد (Wound Healing & Antiseptics) ---
+    {
+        id: "chlorhexidine_shamp",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Chlorhexidine",
+        trade: "Pyoderm shampoo",
+        fileDoseText: "حمام للحيوان 2 - 3 مرات أسبوعياً",
+        route: "Topical Shampoo",
+        freq: "2 - 3 مرات أسبوعياً",
+        usage: "مطهر قوي لعلاج التهابات الجلد البكتيرية العميقة والسطحية",
+        calcType: "fixed_text",
+        fixedNote: "شامبو علاجي: حمام للحيوان 2 إلى 3 مرات أسبوعياً."
+    },
+    {
+        id: "fusidic_acid",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Fusidic acid",
+        trade: "Fucidin cream",
+        fileDoseText: "دهان موضعي 2 - 3 مرات يومياً",
+        route: "Topical",
+        freq: "2 - 3 مرات يومياً",
+        usage: "مضاد حيوي موضعي لعلاج عدوى الجلد البكتيرية العنقودية",
+        calcType: "fixed_text",
+        fixedNote: "دهان موضعي على المنطقة المصابة 2 إلى 3 مرات يومياً."
+    },
+    {
+        id: "bivatracin",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Neomycin + Bacitracin",
+        trade: "Bivatracin, Wouncure",
+        fileDoseText: "رش موضعي على الجروح والحروق مرتين يومياً",
+        route: "Spray / Powder",
+        freq: "مرتين يومياً",
+        usage: "مطهر ومضاد حيوي لمنع تلوث الجروح السطحية والعمليات",
+        calcType: "fixed_text",
+        fixedNote: "رش موضعي على الجروح مرتين يومياً."
+    },
+    {
+        id: "mebo",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Beta-sitosterol",
+        trade: "MEBO",
+        fileDoseText: "طبقة رقيقة على الجرح مرتين يومياً",
+        route: "Ointment",
+        freq: "مرتين يومياً",
+        usage: "ترطيب وتسريع التئام الحروق والجروح وتجديد الأنسجة",
+        calcType: "fixed_text",
+        fixedNote: "توضع طبقة رقيقة على الجرح أو الحرق مرتين يومياً."
+    },
+    {
+        id: "reparil_gel",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Escin + Diethylamine salicylate",
+        trade: "Reparil-Gel N",
+        fileDoseText: "دهان موضعي مرتين يومياً",
+        route: "Topical Gel",
+        freq: "مرتين يومياً",
+        usage: "علاج الكدمات والتورم والارتشاح الموضعي",
+        calcType: "fixed_text",
+        fixedNote: "جل موضعي يدهن مرتين يومياً على مناطق الكدمات والتورم."
+    },
+    {
+        id: "manuka_cream",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Manuka Honey extract",
+        trade: "Manuka cream, Pantomix",
+        fileDoseText: "دهان موضعي مرتين يومياً",
+        route: "Topical",
+        freq: "مرتين يومياً",
+        usage: "مضاد بكتيري طبيعي ومرمم قوي للأنسجة والجروح المزمنة",
+        calcType: "fixed_text",
+        fixedNote: "دهان موضعي على الجروح مرتين يومياً."
+    },
+    {
+        id: "oracure_gel",
+        category: "التئام الجروح والجلد (Wound & Skin)",
+        active: "Oral antiseptic gel",
+        trade: "Oracure oral gel",
+        fileDoseText: "يوضع على اللثة والفم مرتين يومياً",
+        route: "Oral Topical",
+        freq: "مرتين يومياً",
+        usage: "مطهر قوي ومضاد لالتهابات الفم وتقرحات اللثة",
+        calcType: "fixed_text",
+        fixedNote: "جل فموي يوضع على اللثة والفم مرتين يومياً."
+    },
+
+    // --- المحاليل الوريدية واللقاحات (Fluids & Vaccines) ---
+    {
+        id: "normal_saline",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Sodium Chloride 0.9%",
+        trade: "Normal Saline 0.9%",
+        fileDoseText: "يحسب طبقاً لنسبة الجفاف واحتياج المحافظة (Maintenance ~ 50-60 mL/kg/day)",
+        route: "I/V, S/C",
+        freq: "تنقيط وريدي أو تحت الجلد",
+        usage: "تعويض السوائل المفقودة، علاج الجفاف، وحل وتخفيف الأدوية الوريدية",
+        calcType: "direct_ml_kg",
+        mlPerKg: 20,
+        mgPerMl: null
+    },
+    {
+        id: "ringer_lactate",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Compound Sodium Lactate",
+        trade: "Ringer Lactate",
+        fileDoseText: "يحسب حسب وزن الحيوان ومستوى الجفاف وحموضة الدم",
+        route: "I/V, S/C",
+        freq: "تنقيط وريدي أو تحت الجلد",
+        usage: "تعويض السوائل والأملاح في حالات القيء والإسهال والصدمة",
+        calcType: "direct_ml_kg",
+        mlPerKg: 20,
+        mgPerMl: null
+    },
+    {
+        id: "glucose_5",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Dextrose / Glucose 5%",
+        trade: "Glucose 5% / D5W",
+        fileDoseText: "تنقيط وريدي محسوب بدقة حسب مستوى سكر الدم",
+        route: "I/V",
+        freq: "تنقيط وريدي",
+        usage: "علاج هبوط سكر الدم وتوفير مصدر طاقة فوري",
+        calcType: "direct_ml_kg",
+        mlPerKg: 10,
+        mgPerMl: 50
+    },
+    {
+        id: "duphalyte",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Electrolytes + Amino Acids + Vitamins",
+        trade: "Duphalyte",
+        fileDoseText: "يحسب تبعاً للوزن وحالة الجفاف (حوالي 2 - 5 مل/كجم)",
+        route: "Slow I/V, S/C",
+        freq: "يومياً أثناء النقاهة",
+        usage: "دعم غذائي متكامل بالسوائل والفيتامينات أثناء النقاهة وفقدان الشهية",
+        calcType: "direct_ml_kg",
+        mlPerKg: 2,
+        mgPerMl: null
+    },
+    {
+        id: "nobivac_puppy",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "CDV + CPV (ثنائي الجراء)",
+        trade: "Nobivac Puppy DP",
+        fileDoseText: "1 mL من عمر 4 - 6 أسابيع",
+        route: "S/C",
+        freq: "جرعة تأسيسية للجراء",
+        usage: "وقاية الجراء المبكرة من طاعون الكلاب (Distemper) والبارفو (Parvovirus)",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل كاملة تحت الجلد) تُعطى للجراء من عمر 4 إلى 6 أسابيع."
+    },
+    {
+        id: "nobivac_dhppi",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "CDV + CAV-2 + CPV + CPIV (خماسي الكلاب)",
+        trade: "Nobivac DHPPI, DHP",
+        fileDoseText: "1 mL عمر 8-10 أسابيع وتكرر بعد 2-4 أسابيع ثم سنوياً",
+        route: "S/C",
+        freq: "تأسيسي ثم سنوياً",
+        usage: "وقاية من طاعون الكلاب، الالتهاب الكبدي الوبائي، البارفو، والبارا إنفلونزا",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل تحت الجلد) عند عمر 8-10 أسابيع وتُكرر بعد 2-4 أسابيع ثم سنوياً."
+    },
+    {
+        id: "nobivac_lepto",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Leptospira bacterin",
+        trade: "Nobivac Lepto 2",
+        fileDoseText: "1 mL مرتين بفاصل 2-4 أسابيع ثم تنشيط سنوي",
+        route: "S/C",
+        freq: "مرتين ثم سنوياً",
+        usage: "الوقاية من مرض اللبتوسبيرا (Leptospirosis) في الكلاب",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل تحت الجلد) مرتين بفاصل 2-4 أسابيع ثم سنوياً."
+    },
+    {
+        id: "nobivac_kc",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Bordetella + CPIV",
+        trade: "Nobivac KC",
+        fileDoseText: "0.4 mL جرعة واحدة داخل فتحة الأنف",
+        route: "Nasal drops",
+        freq: "جرعة واحدة سنوياً",
+        usage: "الوقاية من السعال الديكي ومجمع سعال بيوت الكلاب (Kennel Cough)",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (0.4 مل) تُنقط داخل فتحة الأنف."
+    },
+    {
+        id: "vanguard_megavac",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "CDV + CAV-2 + CPIV + CPV + Corona + Lepto (سباعي / ثماني)",
+        trade: "Vanguard 5/CV-L, Megavac 7",
+        fileDoseText: "1 mL عمر 45 يوماً وتكرر بعد 2-4 أسابيع ثم سنوياً",
+        route: "S/C",
+        freq: "تأسيسي ثم سنوياً",
+        usage: "تحصين شامل للكلاب (ديستمبر، بارفو، كورونا، كبد وبائي، لبتوسبيرا)",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل تحت الجلد) عند عمر 45 يوماً وتكرر بعد 2-4 أسابيع ثم سنوياً."
+    },
+    {
+        id: "felocell_3",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "FVR + FCV + FPV (ثلاثي القطط)",
+        trade: "Felocell 3, Biofel PCH",
+        fileDoseText: "1 mL عمر 8-10 أسابيع وتكرر بعد 2-4 أسابيع ثم سنوياً",
+        route: "S/C",
+        freq: "تأسيسي ثم سنوياً",
+        usage: "تحصين ضد طاعون القطط وفيروسات الكاليسي والهربس",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل تحت الجلد) عند عمر 8-10 أسابيع وتكرر بعد 2-4 أسابيع ثم سنوياً."
+    },
+    {
+        id: "felocell_4",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "FVR + FCV + FPV + Chlamydia (رباعي القطط)",
+        trade: "Felocell 4, PureVax 4",
+        fileDoseText: "1 mL عمر 8-10 أسابيع وتكرر بعد 2-4 أسابيع ثم سنوياً",
+        route: "S/C",
+        freq: "تأسيسي ثم سنوياً",
+        usage: "تحصين ضد الهربس، الكاليسي، طاعون القطط، وبكتيريا الكلاميديا لالتهاب العين",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل تحت الجلد) عند عمر 8-10 أسابيع وتكرر بعد 2-4 أسابيع ثم سنوياً."
+    },
+    {
+        id: "rabies_vac",
+        category: "المحاليل الوريدية واللقاحات (Fluids & Vaccines)",
+        active: "Inactivated Rabies Virus (لقاح السعار)",
+        trade: "Defensor 3, Nobivac Rabies, Rabisin",
+        fileDoseText: "1 mL عند عمر 3 أشهر، وتكرر بعد سنة، ثم كل 1-3 سنوات",
+        route: "S/C, I/M",
+        freq: "سنوياً",
+        usage: "الحماية والوقاية الكاملة من داء السعار المميت للكلاب والقطط",
+        calcType: "fixed_text",
+        fixedNote: "جرعة ثابتة (1 مل تحت الجلد أو بالعضل) عند عمر 3 أشهر ثم تكرر سنوياً."
+    }
+];
+
+let currentSpecies = 'dog';
+let currentCategory = 'الكل';
+let currentWeight = 5;
+
+function initApp() {
+    renderCategories();
+    filterDrugs();
+    calcFree();
+    renderMasterTable();
+}
+
+function renderCategories() {
+    const categories = ['الكل', ...new Set(drugsData.map(d => d.category))];
+    const container = document.getElementById('categoryPills');
+    container.innerHTML = '';
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'cat-pill' + (cat === currentCategory ? ' active' : '');
+        btn.textContent = cat;
+        btn.onclick = () => {
+            currentCategory = cat;
+            renderCategories();
+            filterDrugs();
+        };
+        container.appendChild(btn);
+    });
+}
+
+function setSpecies(sp) {
+    currentSpecies = sp;
+    document.getElementById('btnDog').classList.toggle('active', sp === 'dog');
+    document.getElementById('btnCat').classList.toggle('active', sp === 'cat');
+    const drug = getSelectedDrug();
+    if (drug && drug.calcType === 'species_mg_kg') {
+        const target = sp === 'dog' ? drug.dogDose : drug.catDose;
+        document.getElementById('doseSlider').value = target;
+        document.getElementById('doseInput').value = target;
+    }
+    calculateCurrent();
+    renderMasterTable();
+}
+
+function syncWeight(source) {
+    const slider = document.getElementById('weightSlider');
+    const input = document.getElementById('weightInput');
+    if (source === 'slider') {
+        input.value = slider.value;
+    } else {
+        slider.value = input.value;
+    }
+    currentWeight = parseFloat(input.value) || 1;
+    document.getElementById('weightLabel').textContent = currentWeight + ' كجم';
+    document.getElementById('outWeightSpan').textContent = currentWeight;
+    document.getElementById('tableWeightSpan').textContent = currentWeight;
+    calculateCurrent();
+    renderMasterTable();
+}
+
+function filterDrugs() {
+    const q = document.getElementById('searchInput').value.trim().toLowerCase();
+    const select = document.getElementById('drugSelect');
+    const prevValue = select.value;
+    select.innerHTML = '';
+
+    const filtered = drugsData.filter(d => {
+        const matchCat = currentCategory === 'الكل' || d.category === currentCategory;
+        const matchSearch = !q || d.active.toLowerCase().includes(q) || d.trade.toLowerCase().includes(q) || d.usage.toLowerCase().includes(q);
+        return matchCat && matchSearch;
+    });
+
+    document.getElementById('drugCountBadge').textContent = filtered.length + ' دواء';
+
+    filtered.forEach(d => {
+        const opt = document.createElement('option');
+        opt.value = d.id;
+        opt.textContent = `${d.trade} — (${d.active})`;
+        select.appendChild(opt);
+    });
+
+    if (filtered.some(d => d.id === prevValue)) {
+        select.value = prevValue;
+    }
+    onDrugChange();
+}
+
+function getSelectedDrug() {
+    const id = document.getElementById('drugSelect').value;
+    return drugsData.find(d => d.id === id) || drugsData[0];
+}
+
+function onDrugChange() {
+    const drug = getSelectedDrug();
+    if (!drug) return;
+
+    const doseGroup = document.getElementById('doseControlGroup');
+    const concGroup = document.getElementById('concControlGroup');
+    const doseSlider = document.getElementById('doseSlider');
+    const doseInput = document.getElementById('doseInput');
+    const hint = document.getElementById('doseRangeHint');
+
+    if (drug.calcType === 'mg_kg' || drug.calcType === 'species_mg_kg') {
+        doseGroup.style.display = 'block';
+        concGroup.style.display = 'block';
+
+        let defDose = drug.defaultDose;
+        if (drug.calcType === 'species_mg_kg') {
+            defDose = currentSpecies === 'dog' ? drug.dogDose : drug.catDose;
+        }
+        doseSlider.min = drug.minDose;
+        doseSlider.max = drug.maxDose;
+        doseSlider.step = (drug.maxDose - drug.minDose <= 1) ? 0.001 : 0.5;
+        doseSlider.value = defDose;
+        doseInput.value = defDose;
+        hint.textContent = `المدى المذكور في الملف: ${drug.fileDoseText}`;
+
+        const concSelect = document.getElementById('concSelect');
+        concSelect.innerHTML = '';
+        drug.concentrations.forEach((c, idx) => {
+            const opt = document.createElement('option');
+            opt.value = idx;
+            opt.textContent = c.name;
+            concSelect.appendChild(opt);
+        });
+        const customOpt = document.createElement('option');
+        customOpt.value = 'custom';
+        customOpt.textContent = '➕ إدخال تركيز آخر مخصص (فيال / شراب / أمبول)...';
+        concSelect.appendChild(customOpt);
+
+        document.getElementById('customConcBox').style.display = 'none';
+    } else if (drug.calcType === 'direct_ml_range') {
+        doseGroup.style.display = 'block';
+        concGroup.style.display = 'none';
+        doseSlider.min = drug.minMlPerKg;
+        doseSlider.max = drug.maxMlPerKg;
+        doseSlider.step = 0.01;
+        doseSlider.value = drug.defaultMlPerKg;
+        doseInput.value = drug.defaultMlPerKg;
+        hint.textContent = `الجرعة المباشرة في الملف: ${drug.fileDoseText}`;
+    } else {
+        doseGroup.style.display = 'none';
+        concGroup.style.display = 'none';
+    }
+
+    calculateCurrent();
+}
+
+function syncDose(source) {
+    const slider = document.getElementById('doseSlider');
+    const input = document.getElementById('doseInput');
+    if (source === 'slider') {
+        input.value = slider.value;
+    } else {
+        slider.value = input.value;
+    }
+    calculateCurrent();
+}
+
+function onConcChange() {
+    const val = document.getElementById('concSelect').value;
+    document.getElementById('customConcBox').style.display = (val === 'custom') ? 'block' : 'none';
+    calculateCurrent();
+}
+
+function calcCustomConc() {
+    const mg = parseFloat(document.getElementById('customMg').value) || 0;
+    const ml = parseFloat(document.getElementById('customMl').value) || 1;
+    const res = mg / ml;
+    document.getElementById('customResultMgMl').textContent = res.toFixed(2);
+    calculateCurrent();
+}
+
+function fmt(num) {
+    if (num === 0) return '0';
+    if (num < 0.01) return num.toFixed(4);
+    if (num < 0.1) return num.toFixed(3);
+    return parseFloat(num.toFixed(2)).toString();
+}
+
+function calculateCurrent() {
+    const drug = getSelectedDrug();
+    if (!drug) return;
+
+    document.getElementById('routeBadge').textContent = drug.route;
+    document.getElementById('infoActive').textContent = drug.active;
+    document.getElementById('infoTrade').textContent = drug.trade;
+    document.getElementById('infoFileDose').textContent = drug.fileDoseText;
+    document.getElementById('infoRoute').textContent = `${drug.route} — (${drug.freq})`;
+    document.getElementById('infoUsage').textContent = drug.usage;
+
+    let mlPerKg = null;
+    let totalMl = null;
+    let totalMg = null;
+
+    if (drug.calcType === 'mg_kg' || drug.calcType === 'species_mg_kg') {
+        const doseMgKg = parseFloat(document.getElementById('doseInput').value) || drug.defaultDose;
+        document.getElementById('selectedDoseMgLabel').textContent = `${doseMgKg} مجم/كجم`;
+
+        const concVal = document.getElementById('concSelect').value;
+        let concMgMl = 100;
+        if (concVal === 'custom') {
+            const mg = parseFloat(document.getElementById('customMg').value) || 0;
+            const ml = parseFloat(document.getElementById('customMl').value) || 1;
+            concMgMl = mg / ml;
+        } else {
+            const cObj = drug.concentrations[parseInt(concVal) || 0];
+            concMgMl = cObj ? cObj.mgPerMl : 100;
+        }
+
+        if (concMgMl > 0) {
+            mlPerKg = doseMgKg / concMgMl;
+            totalMl = mlPerKg * currentWeight;
+            totalMg = doseMgKg * currentWeight;
+        }
+
+        document.getElementById('outMlPerKg').textContent = `${fmt(mlPerKg)} مل/كجم`;
+        document.getElementById('outMlPerKgSub').textContent = `بتركيز ${fmt(concMgMl)} مجم/مل`;
+        document.getElementById('outTotalMl').textContent = `${fmt(totalMl)} مل`;
+        document.getElementById('outTotalSub').textContent = `في الجرعة الواحدة (${drug.freq})`;
+        document.getElementById('outTotalMg').textContent = `${fmt(totalMg)} مجم`;
+        document.getElementById('outFreqText').textContent = drug.freq;
+        document.getElementById('outInsulinUnits').textContent = totalMl <= 1.0 ? `${Math.round(totalMl * 100)} وحدة (IU)` : `${fmt(totalMl)} مل (سرنجة عادية)`;
+        updateSyringeBar(totalMl);
+
+    } else if (drug.calcType === 'direct_ml_kg') {
+        mlPerKg = drug.mlPerKg;
+        totalMl = mlPerKg * currentWeight;
+        document.getElementById('outMlPerKg').textContent = `${fmt(mlPerKg)} مل/كجم`;
+        document.getElementById('outMlPerKgSub').textContent = `جرعة مباشرة من الملف`;
+        document.getElementById('outTotalMl').textContent = `${fmt(totalMl)} مل`;
+        document.getElementById('outTotalSub').textContent = drug.freq;
+        document.getElementById('outTotalMg').textContent = drug.mgPerMl ? `${fmt(totalMl * drug.mgPerMl)} مجم` : `حجم مباشر`;
+        document.getElementById('outFreqText').textContent = drug.freq;
+        document.getElementById('outInsulinUnits').textContent = totalMl <= 1.0 ? `${Math.round(totalMl * 100)} وحدة (IU)` : `${fmt(totalMl)} مل`;
+        updateSyringeBar(totalMl);
+
+    } else if (drug.calcType === 'species_ml_kg') {
+        mlPerKg = currentSpecies === 'dog' ? drug.dogMlPerKg : drug.catMlPerKg;
+        totalMl = mlPerKg * currentWeight;
+        document.getElementById('outMlPerKg').textContent = `${fmt(mlPerKg)} مل/كجم`;
+        document.getElementById('outMlPerKgSub').textContent = currentSpecies === 'dog' ? 'جرعة الكلاب (1 مل/5 كجم)' : 'جرعة القطط (1 مل/4 كجم)';
+        document.getElementById('outTotalMl').textContent = `${fmt(totalMl)} مل`;
+        document.getElementById('outTotalSub').textContent = drug.freq;
+        document.getElementById('outTotalMg').textContent = 'معلق داعم للكلى';
+        document.getElementById('outFreqText').textContent = drug.freq;
+        document.getElementById('outInsulinUnits').textContent = totalMl <= 1.0 ? `${Math.round(totalMl * 100)} وحدة` : `${fmt(totalMl)} مل`;
+        updateSyringeBar(totalMl);
+
+    } else if (drug.calcType === 'direct_ml_range') {
+        mlPerKg = parseFloat(document.getElementById('doseInput').value) || drug.defaultMlPerKg;
+        document.getElementById('selectedDoseMgLabel').textContent = `${fmt(mlPerKg)} مل/كجم`;
+        totalMl = mlPerKg * currentWeight;
+        document.getElementById('outMlPerKg').textContent = `${fmt(mlPerKg)} مل/كجم`;
+        document.getElementById('outMlPerKgSub').textContent = `مدى الجرعة بالميلي/كجم`;
+        document.getElementById('outTotalMl').textContent = `${fmt(totalMl)} مل`;
+        document.getElementById('outTotalSub').textContent = drug.route;
+        document.getElementById('outTotalMg').textContent = 'حقن سائل';
+        document.getElementById('outFreqText').textContent = drug.freq;
+        document.getElementById('outInsulinUnits').textContent = totalMl <= 1.0 ? `${Math.round(totalMl * 100)} وحدة` : `${fmt(totalMl)} مل`;
+        updateSyringeBar(totalMl);
+
+    } else if (drug.calcType === 'tablet_per_kg') {
+        const kgPerTab = currentSpecies === 'dog' ? drug.dogKgPerTab : drug.catKgPerTab;
+        const tabs = currentWeight / kgPerTab;
+        document.getElementById('outMlPerKg').textContent = `1 قرص / ${kgPerTab} كجم`;
+        document.getElementById('outMlPerKgSub').textContent = currentSpecies === 'dog' ? 'جرعة الكلاب' : 'جرعة القطط';
+        document.getElementById('outTotalMl').textContent = `${fmt(tabs)} قرص`;
+        document.getElementById('outTotalSub').textContent = `لوزن ${currentWeight} كجم`;
+        document.getElementById('outTotalMg').textContent = 'أقراص فموية';
+        document.getElementById('outFreqText').textContent = drug.freq;
+        document.getElementById('outInsulinUnits').textContent = 'يُعطى كأقراص';
+        updateSyringeBar(0);
+
+    } else if (drug.calcType === 'weight_bracket') {
+        let doseTxt = '';
+        if (currentWeight <= 5) doseTxt = '2.5 مل (1 ضغطة / Pump)';
+        else if (currentWeight <= 10) doseTxt = '5 مل (2 ضغطة / Pumps)';
+        else if (currentWeight <= 20) doseTxt = '10 مل (4 ضغطات / Pumps)';
+        else doseTxt = '15 مل (6 ضغطات / Pumps)';
+        document.getElementById('outMlPerKg').textContent = 'حسب فئة الوزن';
+        document.getElementById('outMlPerKgSub').textContent = 'شراب Multiboost';
+        document.getElementById('outTotalMl').textContent = doseTxt;
+        document.getElementById('outTotalSub').textContent = 'يومياً على الطعام';
+        document.getElementById('outTotalMg').textContent = 'مكمل مناعي';
+        document.getElementById('outFreqText').textContent = 'مرة يومياً';
+        document.getElementById('outInsulinUnits').textContent = doseTxt;
+        updateSyringeBar(0);
+
+    } else {
+        document.getElementById('outMlPerKg').textContent = 'جرعة ثابتة / خاصة';
+        document.getElementById('outMlPerKgSub').textContent = drug.route;
+        document.getElementById('outTotalMl').textContent = 'انظر الملاحظة';
+        document.getElementById('outTotalSub').textContent = drug.fixedNote || '';
+        document.getElementById('outTotalMg').textContent = '--';
+        document.getElementById('outFreqText').textContent = drug.freq;
+        document.getElementById('outInsulinUnits').textContent = '--';
+        updateSyringeBar(0);
+    }
+}
+
+function updateSyringeBar(volMl) {
+    const fill = document.getElementById('syringeFill');
+    const capLabel = document.getElementById('syringeCapLabel');
+    if (!volMl || volMl <= 0) {
+        fill.style.width = '0%';
+        capLabel.textContent = 'غير سائل / جرعة ثابتة';
+        return;
+    }
+    let maxCap = 1;
+    if (volMl <= 1) maxCap = 1;
+    else if (volMl <= 3) maxCap = 3;
+    else if (volMl <= 5) maxCap = 5;
+    else if (volMl <= 10) maxCap = 10;
+    else maxCap = 20;
+
+    capLabel.textContent = `سرنجة ${maxCap} مل (المسحوب: ${fmt(volMl)} مل)`;
+    const pct = Math.min(100, (volMl / maxCap) * 100);
+    fill.style.width = pct + '%';
+}
+
+function calcFree() {
+    const d = parseFloat(document.getElementById('freeDose').value) || 0;
+    const c = parseFloat(document.getElementById('freeConc').value) || 1;
+    const res = d / c;
+    document.getElementById('freeOut').value = `${fmt(res)} مل/كجم (وللوزن: ${fmt(res * currentWeight)} مل)`;
+}
+
+function renderMasterTable() {
+    const tbody = document.getElementById('masterTableBody');
+    tbody.innerHTML = '';
+
+    drugsData.forEach(d => {
+        const tr = document.createElement('tr');
+        let stdConc = '--';
+        let mlKgTxt = '--';
+        let totalTxt = '--';
+
+        if (d.calcType === 'mg_kg' || d.calcType === 'species_mg_kg') {
+            const c = d.concentrations[0];
+            stdConc = c.name;
+            const dose = d.calcType === 'species_mg_kg' ? (currentSpecies === 'dog' ? d.dogDose : d.catDose) : d.defaultDose;
+            const mlKg = dose / c.mgPerMl;
+            mlKgTxt = `${fmt(mlKg)} مل/كجم`;
+            totalTxt = `${fmt(mlKg * currentWeight)} مل`;
+        } else if (d.calcType === 'direct_ml_kg') {
+            stdConc = 'تركيز العبوة الجاهز';
+            mlKgTxt = `${fmt(d.mlPerKg)} مل/كجم`;
+            totalTxt = `${fmt(d.mlPerKg * currentWeight)} مل`;
+        } else if (d.calcType === 'species_ml_kg') {
+            stdConc = 'تركيز العبوة الجاهز';
+            const mlKg = currentSpecies === 'dog' ? d.dogMlPerKg : d.catMlPerKg;
+            mlKgTxt = `${fmt(mlKg)} مل/كجم`;
+            totalTxt = `${fmt(mlKg * currentWeight)} مل`;
+        } else if (d.calcType === 'direct_ml_range') {
+            stdConc = 'تركيز العبوة الجاهز';
+            mlKgTxt = `${fmt(d.minMlPerKg)} - ${fmt(d.maxMlPerKg)} مل/كجم`;
+            totalTxt = `${fmt(d.minMlPerKg * currentWeight)} - ${fmt(d.maxMlPerKg * currentWeight)} مل`;
+        } else if (d.calcType === 'tablet_per_kg') {
+            const kgTab = currentSpecies === 'dog' ? d.dogKgPerTab : d.catKgPerTab;
+            stdConc = 'أقراص';
+            mlKgTxt = `1 قرص / ${kgTab} كجم`;
+            totalTxt = `${fmt(currentWeight / kgTab)} قرص`;
+        } else {
+            stdConc = 'حسب العبوة';
+            mlKgTxt = d.fileDoseText;
+            totalTxt = 'انظر الجدول';
+        }
+
+        tr.innerHTML = `
+            <td><span class="badge">${d.category.split(' ')[0]} ${d.category.split(' ')[1] || ''}</span></td>
+            <td><strong>${d.active}</strong></td>
+            <td>${d.trade}</td>
+            <td>${d.fileDoseText}</td>
+            <td>${stdConc}</td>
+            <td style="font-weight:700; color:var(--primary-dark);">${mlKgTxt}</td>
+            <td style="font-weight:700; color:var(--secondary);">${totalTxt}</td>
+            <td>${d.route} (${d.freq})</td>
+        `;
+        tbody.appendChild(tr);
+    });
+}
+
+// دالة إضافة دواء جديد مباشرة من الواجهة
+function addNewCustomDrug() {
+    const active = document.getElementById('newActive').value.trim();
+    const trade = document.getElementById('newTrade').value.trim();
+    const category = document.getElementById('newCategory').value.trim();
+    const dose = parseFloat(document.getElementById('newDose').value) || 1;
+    const conc = parseFloat(document.getElementById('newConc').value) || 10;
+    const routeFreq = document.getElementById('newRouteFreq').value.trim();
+    const usage = document.getElementById('newUsage').value.trim();
+
+    if (!active || !trade) {
+        alert('يرجى إدخال اسم المادة الفعالة والاسم التجاري على الأقل.');
+        return;
+    }
+
+    const newDrugObj = {
+        id: "custom_" + Date.now(),
+        category: category || "أدوية مضافة",
+        active: active,
+        trade: trade,
+        fileDoseText: `${dose} mg/kg`,
+        route: routeFreq,
+        freq: "حسب الحاجة",
+        usage: usage || "Custom added drug",
+        calcType: "mg_kg",
+        minDose: dose,
+        maxDose: dose * 2,
+        defaultDose: dose,
+        concentrations: [
+            { name: `تركيز مخصص (${conc} مجم/مل)`, mgPerMl: conc }
+        ]
+    };
+
+    drugsData.push(newDrugObj);
+    renderCategories();
+    filterDrugs();
+    renderMasterTable();
+
+    // اختيار الدواء المضاف حديثاً تلقائياً
+    document.getElementById('drugSelect').value = newDrugObj.id;
+    onDrugChange();
+
+    alert('تم إضافة الدواء بنجاح واختياره في الحاسبة وجدولة المراجع!');
+}
+
+window.onload = initApp;
+</script>
+</body>
+</html>
